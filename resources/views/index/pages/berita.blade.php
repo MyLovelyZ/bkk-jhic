@@ -26,51 +26,47 @@
           </p>
 </div>
 <!-- Quick Search Form -->
-<div class="w-full sm:w-80 relative shrink-0">
+<form method="GET" action="{{ route('bkk.berita') }}" class="w-full sm:w-80 relative shrink-0">
+@if($kategoriSlug)
+    <input type="hidden" name="kategori" value="{{ $kategoriSlug }}"/>
+@endif
 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">search</span>
-<input class="w-full pl-11 pr-4 py-3 bg-surface-container-lowest text-on-surface font-body-default text-body-default rounded-full shadow-sm placeholder:text-on-surface-variant/70 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Cari berita atau agenda..." type="text"/>
-</div>
+<input name="q" value="{{ $searchQuery }}" class="w-full pl-11 pr-4 py-3 bg-surface-container-lowest text-on-surface font-body-default text-body-default rounded-full shadow-sm placeholder:text-on-surface-variant/70 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Cari berita atau agenda..." type="text"/>
+</form>
 </div>
 <!-- Category Filter Tabs -->
 <div class="flex items-center gap-2 overflow-x-auto pb-2 pt-1 no-scrollbar">
-<button class="px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold shrink-0 shadow-sm transition-all hover:bg-primary/90 flex items-center gap-2">
+<a href="{{ route('bkk.berita', request()->only('q')) }}" 
+   class="px-5 py-2.5 rounded-full {{ empty($kategoriSlug) ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface hover:bg-surface-variant' }} font-label-md text-label-md font-semibold shrink-0 transition-all flex items-center gap-2">
 <span>Semua Artikel</span>
-<span class="text-[11px] bg-white/20 px-2 py-0.5 rounded-full">24</span>
-</button>
-<button class="px-5 py-2.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md shrink-0 hover:bg-surface-variant transition-colors flex items-center gap-2">
-<span>Agenda &amp; Event</span>
-<span class="text-[11px] bg-on-surface/10 px-2 py-0.5 rounded-full text-on-surface-variant">8</span>
-</button>
-<button class="px-5 py-2.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md shrink-0 hover:bg-surface-variant transition-colors flex items-center gap-2">
-<span>Kunjungan Industri</span>
-<span class="text-[11px] bg-on-surface/10 px-2 py-0.5 rounded-full text-on-surface-variant">6</span>
-</button>
-<button class="px-5 py-2.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md shrink-0 hover:bg-surface-variant transition-colors flex items-center gap-2">
-<span>Panduan &amp; Tips Karier</span>
-<span class="text-[11px] bg-on-surface/10 px-2 py-0.5 rounded-full text-on-surface-variant">7</span>
-</button>
-<button class="px-5 py-2.5 rounded-full bg-surface-container text-on-surface font-label-md text-label-md shrink-0 hover:bg-surface-variant transition-colors flex items-center gap-2">
-<span>Prestasi Alumni</span>
-<span class="text-[11px] bg-on-surface/10 px-2 py-0.5 rounded-full text-on-surface-variant">3</span>
-</button>
+<span class="text-[11px] {{ empty($kategoriSlug) ? 'bg-white/20' : 'bg-on-surface/10 text-on-surface-variant' }} px-2 py-0.5 rounded-full">{{ $totalPublished }}</span>
+</a>
+@foreach($categories as $cat)
+<a href="{{ route('bkk.berita', array_merge(request()->only('q'), ['kategori' => $cat->slug])) }}" 
+   class="px-5 py-2.5 rounded-full {{ $kategoriSlug === $cat->slug ? 'bg-primary text-on-primary shadow-sm' : 'bg-surface-container text-on-surface hover:bg-surface-variant' }} font-label-md text-label-md font-semibold shrink-0 transition-colors flex items-center gap-2">
+<span>{{ $cat->nama }}</span>
+<span class="text-[11px] {{ $kategoriSlug === $cat->slug ? 'bg-white/20' : 'bg-on-surface/10 text-on-surface-variant' }} px-2 py-0.5 rounded-full">{{ $cat->beritas_count }}</span>
+</a>
+@endforeach
 </div>
 </div>
 </section>
 <!-- Main Content Structure: Hero + Articles Grid with Sidebar -->
 <section class="w-full max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16 flex flex-col gap-12">
 <!-- FEATURED HERO ARTICLE (Horizontal Split 16:9 feel) -->
+@if($heroBerita)
 <article class="w-full bg-surface-container-lowest rounded-lg shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all hover:shadow-md">
 <!-- Media Aspect Holder -->
 <div class="lg:w-7/12 relative aspect-video lg:aspect-auto min-h-[320px] overflow-hidden group">
-<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="Suasana riuh antusias Job Fair akbar di aula auditorium SMK dengan stan-stan perusahaan ternama, banner bertuliskan Penus Career Expo, ratusan siswa berseragam rapi membawa map berkas CV, pencahayaan panggung modern hangat dengan nuansa merah dan amber korporat profesional." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUM_9PoEDzhUHmysf4BQAkT6lrpVW6bpBNpCPaTFKzAYGFnllsgVWTQNfJTWHAi1yxF_RhLLP4cxUUc7ZB09-sJOgY7ng8NZN7hwgw7Va_jkHa3--Cp3LB1LEw064ZKk2M1otu2uG6ily06ajNGnvx5hqVoE9yDT3aFtKAlB-d7SSSdhePgEWrs_nXRkfKrBqNFVoGt2Ozb-bIg55sYJhjHaA3sjDTI8G8eoB0HdZDlf6FpDDDOC1b"/>
+<img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="{{ $heroBerita->judul }}" src="{{ $heroBerita->gambar_sampul }}"/>
 <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent lg:hidden"></div>
 <div class="absolute top-4 left-4 flex flex-wrap gap-2">
 <span class="px-3 py-1 rounded-full bg-primary text-on-primary font-label-dense text-label-dense uppercase tracking-wider font-semibold shadow-sm">
-            Agenda Utama
-          </span>
+    Agenda Utama
+</span>
 <span class="px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container font-label-dense text-label-dense uppercase tracking-wider font-semibold shadow-sm">
-            Walk-in Interview
-          </span>
+    {{ $heroBerita->kategori->nama ?? 'Bursa Kerja' }}
+</span>
 </div>
 </div>
 <!-- Text Details -->
@@ -80,39 +76,43 @@
 <div class="flex items-center gap-4 text-on-surface-variant font-label-dense text-label-dense">
 <span class="flex items-center gap-1">
 <span class="material-symbols-outlined text-[16px] text-primary">calendar_today</span>
-              24 Mei 2025
-            </span>
+    {{ $heroBerita->formatted_date }}
+</span>
 <span>•</span>
 <span class="flex items-center gap-1">
 <span class="material-symbols-outlined text-[16px]">schedule</span>
-              4 Menit Baca
-            </span>
+    {{ $heroBerita->estimasi_baca ?? '4 Menit Baca' }}
+</span>
 </div>
+<a href="{{ route('bkk.berita.detail', $heroBerita->slug) }}">
 <h2 class="font-headline-md text-headline-md text-on-surface leading-snug hover:text-primary transition-colors cursor-pointer">
-            Job Fair Akbar SMK Plus Pelita Nusantara 2025: Hadirkan 35 Perusahaan Nasional dan 500+ Lowongan Khusus Lulusan Vokasi
-          </h2>
+    {{ $heroBerita->judul }}
+</h2>
+</a>
 <p class="font-body-default text-body-default text-on-surface-variant line-clamp-3">
-            Pusat karier BKK Penus kembali menghelat perhelatan rekrutmen massal tahunan dengan menggandeng industri otomotif, teknologi informasi, logistik, dan hospitality terkemuka. Registrasi dibuka secara terintegrasi via portal mandiri siswa.
-          </p>
+    {{ $heroBerita->ringkasan }}
+</p>
 </div>
 <!-- Byline & CTA -->
 <div class="pt-6 mt-6 flex items-center justify-between">
 <div class="flex items-center gap-3">
 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-[14px]">
-              HP
-            </div>
+    {{ strtoupper(substr($heroBerita->penulis_nama, 0, 2)) }}
+</div>
 <div class="flex flex-col">
-<span class="font-label-md text-label-md text-on-surface font-semibold">Tim Humas &amp; BKK Penus</span>
-<span class="font-body-dense text-body-dense text-on-surface-variant">Sekretariat Penus Cibinong</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">{{ $heroBerita->penulis_nama }}</span>
+<span class="font-body-dense text-body-dense text-on-surface-variant">{{ $heroBerita->penulis_jabatan ?? 'Sekretariat Penus Cibinong' }}</span>
 </div>
 </div>
-<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-primary/90 transition-all" href="#">
+<a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-primary/90 transition-all" href="{{ route('bkk.berita.detail', $heroBerita->slug) }}">
 <span>Baca Selengkapnya</span>
 <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
 </a>
 </div>
 </div>
 </article>
+@endif
+
 <!-- CONTENT GRID: Left (Articles) & Right (Sidebar) -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 <!-- ARTICLES COLUMN (8 Cols) -->
@@ -120,219 +120,112 @@
 <div class="flex items-center justify-between">
 <h3 class="font-title-md text-title-md text-on-surface flex items-center gap-2">
 <span class="w-1.5 h-6 bg-primary rounded-full inline-block"></span>
-            Semua Publikasi Terkini
-          </h3>
-<span class="font-label-dense text-label-dense text-on-surface-variant">Menampilkan 1 - 6 dari 24 Kabar</span>
+    @if($kategoriSlug)
+        Kategori: {{ $categories->firstWhere('slug', $kategoriSlug)->nama ?? $kategoriSlug }}
+    @elseif($searchQuery)
+        Hasil Pencarian: "{{ $searchQuery }}"
+    @else
+        Semua Publikasi Terkini
+    @endif
+</h3>
+<span class="font-label-dense text-label-dense text-on-surface-variant">
+    Menampilkan {{ $beritas->firstItem() ?? 0 }} - {{ $beritas->lastItem() ?? 0 }} dari {{ $beritas->total() }} Kabar
+</span>
 </div>
 <!-- 6 Cards Grid (2 columns on desktop) -->
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-<!-- Card 1 -->
+@forelse($beritas as $item)
 <article class="flex flex-col bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group">
 <div class="relative aspect-[16/10] overflow-hidden">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Sesi penandatanganan kesepakatan nota kesepahaman MoU antara kepala sekolah SMK vokasi dan pimpinan manajer HRD perusahaan manufaktur otomotif besar dengan latar logo Astra dan Telkom, suasana ruang rapat resmi berstandar industri modern." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDE8yzqYGf2hT4bYvUkHE0P7LQgydg9R0JGxxrsQKfytPHWXSCg9IWXfcX_nrjJ3tHsMSxkKdGtjyT3eZeLj1jnL_efbCxxQQQ1rPqDBPxDVQ5U7rmdpL6VSDBr6yf98jPqXXhC-fzM_wcQsU_vHGlHvReqVE4tXOK0o6wSCcp0Yxwo8N7cY9mPA1t1Zs1n7upMLABr0pJ3EgkuMOf71n6CdWgWs8fblcFnXMRfm1Lv9r4l8YgJs-zC"/>
+@if($item->gambar_sampul)
+    <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" alt="{{ $item->judul }}" src="{{ $item->gambar_sampul }}"/>
+@else
+    <div class="w-full h-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+        <span class="material-symbols-outlined text-[36px]">newspaper</span>
+    </div>
+@endif
 <span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 backdrop-blur text-primary font-label-dense text-label-dense font-semibold">
-                Kemitraan
-              </span>
+    {{ $item->kategori->nama ?? 'Umum' }}
+</span>
 </div>
 <div class="p-5 flex flex-col flex-1 justify-between gap-4">
 <div class="flex flex-col gap-2">
 <div class="flex items-center gap-2 text-on-surface-variant font-label-dense text-label-dense">
-<span>20 Mei 2025</span>
+<span>{{ $item->formatted_date }}</span>
 <span>•</span>
-<span>3 Menit</span>
+<span>{{ $item->estimasi_baca ?? '3 Menit' }}</span>
 </div>
+<a href="{{ route('bkk.berita.detail', $item->slug) }}">
 <h4 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                  Penyelarasan Kurikulum Vokasi 2025 bersama PT Astra Otoparts &amp; Telkom Akses
-                </h4>
+    {{ $item->judul }}
+</h4>
+</a>
 <p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-2">
-                  Memastikan kompetensi teknis peserta didik jurusan TKRO, TKJ, dan RPL selaras langsung dengan standar operasional pabrikasi terkini.
-                </p>
+    {{ $item->ringkasan }}
+</p>
 </div>
 <div class="flex items-center justify-between pt-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant">Humas Industri</span>
-<span class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
-                  Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
-</span>
+<span class="font-label-dense text-label-dense text-on-surface-variant">{{ $item->penulis_nama }}</span>
+<a href="{{ route('bkk.berita.detail', $item->slug) }}" class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
+    Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
+</a>
 </div>
 </div>
 </article>
-<!-- Card 2 -->
-<article class="flex flex-col bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group">
-<div class="relative aspect-[16/10] overflow-hidden">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Tampilan laptop modern menampilkan dokumen Curriculum Vitae terstruktur rapi dengan layout ATS friendly di atas meja kayu bersih lengkap dengan secangkir kopi dan kacamata berbingkai tipis, pencahayaan natural hangat." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgZM4aRMWxSK85LgW7L5yuximWGp-AlZzvEKoqzdO5AJla8LiJ1cQi_wTD5N9WdrsJkrj1cdIa5K8bnmdSWe7MrXyc50aj7X9ybnEleQVvqcNNfOqaMF621Sms7TwENvaJM1Z_o7aaC-IY2HbgRb9pkqKcwFKNs6lCTay2Pr0y30hdklYM_ybjJw9VaOiKoRhl0eexabsiysf-Shfz9Olh8Lajzj8xsi77R8zz49QSKS7KEgEI6TGM"/>
-<span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 backdrop-blur text-secondary font-label-dense text-label-dense font-semibold">
-                Tips Karier
-              </span>
+@empty
+<div class="col-span-2 py-12 flex flex-col items-center justify-center gap-3 bg-surface-container-lowest rounded-lg p-8 text-center">
+    <span class="material-symbols-outlined text-[48px] text-on-surface-variant/40">feed</span>
+    <h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Belum Ada Artikel</h4>
+    <p class="font-body-dense text-body-dense text-on-surface-variant max-w-md">
+        Belum ditemukan publikasi berita yang sesuai dengan kategori atau kata kunci pencarian yang dipilih.
+    </p>
+    <a href="{{ route('bkk.berita') }}" class="mt-2 px-5 py-2 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold hover:bg-primary/90 transition-all">
+        Lihat Semua Artikel
+    </a>
 </div>
-<div class="p-5 flex flex-col flex-1 justify-between gap-4">
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-2 text-on-surface-variant font-label-dense text-label-dense">
-<span>18 Mei 2025</span>
-<span>•</span>
-<span>5 Menit</span>
-</div>
-<h4 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                  Panduan Praktis Siswa: 5 Langkah Membuat CV Digital Standar ATS Menggunakan BKK Penus
-                </h4>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-2">
-                  Pelajari rahasia lolos penyaringan otomatis Applicant Tracking System bagi fresh graduate SMK dengan kata kunci kompetensi keahlian.
-                </p>
-</div>
-<div class="flex items-center justify-between pt-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant">Konselor Karier</span>
-<span class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
-                  Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
-</span>
-</div>
-</div>
-</article>
-<!-- Card 3 -->
-<article class="flex flex-col bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group">
-<div class="relative aspect-[16/10] overflow-hidden">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Barisan siswa SMK berseragam werpack praktikum rapi mendengarkan pengarahan instruktur di aula sekolah berbendera merah putih, apel pembekalan magang industri dengan sikap disiplin dan optimis cerah." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdEP9QiyayhPuPK5DqZghuMq7WPV4nv2Cp_p0FupgIiKyxwcr2TNBXEk6Lx8v7IHJhG-BAapIfGLu3yTcdKQ-XqylHfI4nkUoq0AsBSmCIc1z6siGwT6eJlTdEXYfmQqcM4CPzBHfKoLxV2MXh5aCPQbBclhiUZTHDrC2_y09ZFFHKVVMmNc4wFzOBdlxRbADB3Tn5_TfyJVV9a-pHG9CiIXwY8BfA7iLu5d2kkabwqeMDZA9OfBM2"/>
-<span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 backdrop-blur text-primary font-label-dense text-label-dense font-semibold">
-                Agenda
-              </span>
-</div>
-<div class="p-5 flex flex-col flex-1 justify-between gap-4">
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-2 text-on-surface-variant font-label-dense text-label-dense">
-<span>15 Mei 2025</span>
-<span>•</span>
-<span>2 Menit</span>
-</div>
-<h4 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                  Jadwal Pembekalan dan Pelepasan PKL Gelombang II Tahun Ajaran 2024/2025
-                </h4>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-2">
-                  Informasi komprehensif tanggal serah terima ke 42 IDUKA mitra, tata tertib absensi harian, dan pembagian dosen pamong pembimbing lapangan.
-                </p>
-</div>
-<div class="flex items-center justify-between pt-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant">Pokja Magang PKL</span>
-<span class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
-                  Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
-</span>
-</div>
-</div>
-</article>
-<!-- Card 4 -->
-<article class="flex flex-col bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group">
-<div class="relative aspect-[16/10] overflow-hidden">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Potret seorang alumni muda tersenyum percaya diri mengenakan lanyard identitas ID Card kantor teknologi startup modern, duduk di depan monitor multi-display menampilkan kode pemrograman awan cloud server." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDkPp_-I6dMWpDQDJpKhyQvaRhj2nCMcjrTrSTLLPv8QxLYkSQHyJnbSO3nZSfhMaOnzeqDs1IqacW27WCBGrD7yiWy5GHhZr7vC5ATdXpRdk4EGM_0YaMI647jqM2KbsZZ2axt4ucUW8EcqbkLWRoLf321usoQGmlG5pbiSvhamXaq7UEsZu2EFCB579t7lVyh41Zs-PauvBFeSnCDcoeNn1hoY2YLuwfUCtzSMsK1IQS4XDTWuSjd"/>
-<span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 backdrop-blur text-secondary-container text-on-secondary-container font-label-dense text-label-dense font-semibold">
-                Prestasi
-              </span>
-</div>
-<div class="p-5 flex flex-col flex-1 justify-between gap-4">
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-2 text-on-surface-variant font-label-dense text-label-dense">
-<span>12 Mei 2025</span>
-<span>•</span>
-<span>6 Menit</span>
-</div>
-<h4 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                  Kisah Sukses Alumni: Dari Magang PKL di Software Studio hingga Diangkat Menjadi Junior Cloud Engineer
-                </h4>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-2">
-                  Simak perjalanan Dimas Ramadhan (Alumni RPL '23) membuktikan dedikasi tinggi selama masa prakerin berbuah kontrak kerja profesional tetap.
-                </p>
-</div>
-<div class="flex items-center justify-between pt-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant">Divisi Alumni</span>
-<span class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
-                  Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
-</span>
-</div>
-</div>
-</article>
-<!-- Card 5 -->
-<article class="flex flex-col bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group">
-<div class="relative aspect-[16/10] overflow-hidden">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Suasana simulasi wawancara kerja tatap muka profesional antara calon pencari kerja muda yang sopan dan dua orang panelis pewawancara HRD di ruang kantor berdinding kaca elegan." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxEkNx4fgUB6x2z7PMfHpsPLuVBy3ss3HuIdM-NwMj27DJWvXSkfEb-K9OwT7IiRaQQjc2tDW0UT5GSOO4eG9p7V2YAw9nFLVuU9uh4cAdTRolFFKyBnwRD2fi5XCNlnB7r6GHLyfVhV6V4o5xIW214A1EXGdJz39Fp-O5_WZ0CfqKzuTICjbymmgK5Qlo5qhAHoLdkVvNA8si0l9VaTw9LSMfrYNnewcg2nMkhRtMz-sUh8Kx8CN0"/>
-<span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 backdrop-blur text-secondary font-label-dense text-label-dense font-semibold">
-                Tips Karier
-              </span>
-</div>
-<div class="p-5 flex flex-col flex-1 justify-between gap-4">
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-2 text-on-surface-variant font-label-dense text-label-dense">
-<span>08 Mei 2025</span>
-<span>•</span>
-<span>4 Menit</span>
-</div>
-<h4 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                  Tips Menjawab Pertanyaan Menjebak Saat Interview Kerja untuk Fresh Graduate SMK
-                </h4>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-2">
-                  Strategi menggunakan metode STAR (Situation, Task, Action, Result) saat ditanya kelemahan diri, gaji yang diharapkan, dan rencana studi lanjutan.
-                </p>
-</div>
-<div class="flex items-center justify-between pt-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant">Bimbingan Karier</span>
-<span class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
-                  Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
-</span>
-</div>
-</div>
-</article>
-<!-- Card 6 -->
-<article class="flex flex-col bg-surface-container-lowest rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all group">
-<div class="relative aspect-[16/10] overflow-hidden">
-<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="Presentasi sosialisasi program magang ke luar negeri dengan latar bendera Indonesia dan Jepang, instruktur bahasa asing menunjukkan dokumen visa magang teknis tokutei ginou kepada pelajar SMK di kelas multimedia." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC0I8ALJRMLmAlhbAMxhmsMx8uE7F1pzd1WFnb0ZxH683ywhCcsHDXbBrXn5ibo2An4rWYNO_zBYwXFK27-rNyU-vdnztbnNEbl1VesWlzFWtXC0pflKEvdDT8zsxWJ6jJ2BmAlyah_vBcscfwtjFEEScLcRfM7YoqZ-6XJOrUS4bcAiAxd_OH9Y4326s0okMv0Zk6lNHFx32uOLvo4fBJ9KDYbpRfSyGo0J4A--ikyonV9esaMLur9"/>
-<span class="absolute top-3 left-3 px-2.5 py-0.5 rounded-full bg-surface-container-lowest/90 backdrop-blur text-tertiary font-label-dense text-label-dense font-semibold">
-                Peluang Global
-              </span>
-</div>
-<div class="p-5 flex flex-col flex-1 justify-between gap-4">
-<div class="flex flex-col gap-2">
-<div class="flex items-center gap-2 text-on-surface-variant font-label-dense text-label-dense">
-<span>04 Mei 2025</span>
-<span>•</span>
-<span>5 Menit</span>
-</div>
-<h4 class="font-title-md text-title-md text-on-surface group-hover:text-primary transition-colors leading-snug line-clamp-2">
-                  Sosialisasi Program Pemagangan Industri ke Jepang: Peluang Karier Global bagi Siswa Penus
-                </h4>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-2">
-                  Kolaborasi strategis LPK Resmi Sending Organization dengan BKK Penus untuk kuota pelatihan bahasa N4 dan magang teknisi manufaktur presisi.
-                </p>
-</div>
-<div class="flex items-center justify-between pt-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant">Kerja Sama Global</span>
-<span class="text-primary font-label-dense text-label-dense font-semibold flex items-center group-hover:translate-x-1 transition-transform">
-                  Selengkapnya <span class="material-symbols-outlined text-[16px] ml-0.5">chevron_right</span>
-</span>
-</div>
-</div>
-</article>
+@endforelse
 </div>
 <!-- PAGINATION SECTION -->
+@if($beritas->hasPages())
 <div class="w-full bg-surface-container-lowest rounded-lg p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
 <div class="text-on-surface-variant font-body-dense text-body-dense">
-            Halaman <strong class="text-on-surface">1</strong> dari <strong class="text-on-surface">4</strong> (Total 24 Catatan Berita)
-          </div>
+    Halaman <strong class="text-on-surface">{{ $beritas->currentPage() }}</strong> dari <strong class="text-on-surface">{{ $beritas->lastPage() }}</strong> (Total {{ $beritas->total() }} Catatan Berita)
+</div>
 <div class="flex items-center gap-1.5">
-<button class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center opacity-50 cursor-not-allowed">
-<span class="material-symbols-outlined text-[18px]">chevron_left</span>
-</button>
-<button class="w-9 h-9 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold flex items-center justify-center shadow-sm">
-              1
-            </button>
-<button class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors flex items-center justify-center">
-              2
-            </button>
-<button class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors flex items-center justify-center">
-              3
-            </button>
-<button class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors flex items-center justify-center">
-              4
-            </button>
-<button class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant flex items-center justify-center transition-colors">
-<span class="material-symbols-outlined text-[18px]">chevron_right</span>
-</button>
+@if($beritas->onFirstPage())
+    <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center opacity-50 cursor-not-allowed">
+        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+    </span>
+@else
+    <a href="{{ $beritas->previousPageUrl() }}" class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center">
+        <span class="material-symbols-outlined text-[18px]">chevron_left</span>
+    </a>
+@endif
+
+@foreach($beritas->getUrlRange(1, $beritas->lastPage()) as $page => $url)
+    @if($page == $beritas->currentPage())
+        <span class="w-9 h-9 rounded-full bg-primary text-on-primary font-label-md text-label-md font-semibold flex items-center justify-center shadow-sm">
+            {{ $page }}
+        </span>
+    @else
+        <a href="{{ $url }}" class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant font-label-md text-label-md transition-colors flex items-center justify-center">
+            {{ $page }}
+        </a>
+    @endif
+@endforeach
+
+@if($beritas->hasMorePages())
+    <a href="{{ $beritas->nextPageUrl() }}" class="w-9 h-9 rounded-full bg-surface-container text-on-surface hover:bg-surface-variant transition-colors flex items-center justify-center">
+        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+    </a>
+@else
+    <span class="w-9 h-9 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center opacity-50 cursor-not-allowed">
+        <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+    </span>
+@endif
 </div>
 </div>
+@endif
 </div>
 <!-- SIDEBAR WIDGETS COLUMN (4 Cols) -->
 <aside class="lg:col-span-4 flex flex-col gap-6 w-full">
@@ -469,32 +362,5 @@
 </aside>
 </div>
 </section>
-<!-- Interactive Search and Filter Script -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-      // Micro-interaction for category tabs
-      const tabs = document.querySelectorAll('section button[class*="rounded-full"]');
-      tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-          tabs.forEach(t => {
-            t.classList.remove('bg-primary', 'text-on-primary');
-            t.classList.add('bg-surface-container', 'text-on-surface');
-            const counter = t.querySelector('span:last-child');
-            if(counter) {
-              counter.classList.remove('bg-white/20');
-              counter.classList.add('bg-on-surface/10', 'text-on-surface-variant');
-            }
-          });
-          tab.classList.remove('bg-surface-container', 'text-on-surface');
-          tab.classList.add('bg-primary', 'text-on-primary');
-          const activeCounter = tab.querySelector('span:last-child');
-          if(activeCounter) {
-            activeCounter.classList.remove('bg-on-surface/10', 'text-on-surface-variant');
-            activeCounter.classList.add('bg-white/20');
-          }
-        });
-      });
-    });
-  </script>
 </div>
 @endsection

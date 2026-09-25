@@ -1,17 +1,19 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminBeritaController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - bkk System
+| Web Routes - BKK System
 |--------------------------------------------------------------------------
 |
 | Seluruh endpoint WAJIB memiliki prefix /bkk/.
-| - /bkk/*           : Publik (Tanpa middleware)
-| - /bkk/dashboard/* : Terproteksi (Middleware verify.auth + RBAC: ADMIN, KEPALA_SEKOLAH, TU, DEVELOPER)
+| - /bkk/*        : Publik (Tanpa middleware)
+| - /bkk/admin/*  : Terproteksi (Middleware verify.auth + RBAC: ADMIN, KEPALA_SEKOLAH, TU, DEVELOPER)
+| - /bkk/dashboard/* : Alias kompatibel ke admin
 |
 */
 
@@ -29,11 +31,21 @@ Route::prefix('bkk')->group(function () {
     Route::get('/tentang', [PublicController::class, 'tentang'])->name('bkk.tentang');
     Route::get('/kerja-sama', [PublicController::class, 'kerjasama'])->name('bkk.kerjasama');
 
-    // 2. Router Group Terproteksi: /bkk/dashboard/*
-    Route::prefix('dashboard')
-        ->middleware('verify.auth:ADMIN,KEPALA_SEKOLAH,TU,DEVELOPER')
-        ->group(function () {
-            Route::get('/', [DashboardController::class, 'index'])->name('bkk.dashboard.index');
-            Route::get('/profile', [DashboardController::class, 'profile'])->name('bkk.dashboard.profile');
-        });
+    // 2. Router Group Terproteksi: /bkk/admin/* & /bkk/dashboard/*
+    Route::middleware('verify.auth:ADMIN,KEPALA_SEKOLAH,TU,DEVELOPER')->group(function () {
+        foreach (['admin', 'dashboard'] as $prefix) {
+            Route::prefix($prefix)->group(function () use ($prefix) {
+                Route::get('/', [DashboardController::class, 'index'])->name("bkk.{$prefix}.index");
+                Route::get('/profile', [DashboardController::class, 'profile'])->name("bkk.{$prefix}.profile");
+
+                // Modul Berita Admin
+                Route::get('/berita', [AdminBeritaController::class, 'index'])->name("bkk.{$prefix}.berita.index");
+                Route::get('/berita/new', [AdminBeritaController::class, 'create'])->name("bkk.{$prefix}.berita.create");
+                Route::post('/berita', [AdminBeritaController::class, 'store'])->name("bkk.{$prefix}.berita.store");
+                Route::get('/berita/{id_berita}', [AdminBeritaController::class, 'edit'])->name("bkk.{$prefix}.berita.edit");
+                Route::put('/berita/{id_berita}', [AdminBeritaController::class, 'update'])->name("bkk.{$prefix}.berita.update");
+                Route::delete('/berita/{id_berita}', [AdminBeritaController::class, 'destroy'])->name("bkk.{$prefix}.berita.destroy");
+            });
+        }
+    });
 });

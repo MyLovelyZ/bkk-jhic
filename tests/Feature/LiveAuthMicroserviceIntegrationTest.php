@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class LiveAuthMicroserviceIntegrationTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected string $authServerUrl = 'http://localhost:3002';
 
     /**

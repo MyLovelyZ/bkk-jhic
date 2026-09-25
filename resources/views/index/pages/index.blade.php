@@ -482,90 +482,54 @@
 <span class="inline-flex items-center px-3 py-1 rounded-full bg-tertiary-fixed text-tertiary font-label-dense text-label-dense uppercase tracking-widest font-bold">Kisah Keberhasilan Nyata</span>
 <h2 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Berita &amp; Agenda Walk-in BKK Penus</h2>
 </div>
-<a class="font-label-md text-label-md text-primary font-semibold hover:text-on-surface transition-colors flex items-center gap-1" href="#">
+<a class="font-label-md text-label-md text-primary font-semibold hover:text-on-surface transition-colors flex items-center gap-1" href="{{ route('bkk.berita') }}">
           Arsip Berita &amp; Agenda Lengkap <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
 </a>
 </div>
 <!-- Articles Grid -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-<!-- Article 1 -->
+@forelse($latestBerita ?? [] as $article)
+<!-- Dynamic Article Card -->
 <article class="flex flex-col rounded-lg bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-md transition-shadow">
 <div class="relative h-48 w-full bg-surface-container overflow-hidden">
-<img class="w-full h-full object-cover" data-alt="Bustling Indonesian high school vocational Job Fair hall packed with students in uniform visiting corporate booths, interview desks, career banners, bright indoor lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIdwu3qVWEqAouIpLosRJ_BVzyxezM6itjNXW3z93M7oYNlcPUmAEjAUcIHhr9FbSGxjxFWTJK8iV7ijaJuw-KJwAlwzR50YBG0Sw4iMuOg-nj8OLJM2FmbNFmvvqMu_HwNXLFmi7k3RrZ5TVJhV2cowgFE4pSrYoO-piXQrcC1lfl-bDACtaY-97Q6l38FblIBiR79bquIaBnM3xDGXY2ZzBulPoHovhkCkA0DiL9Db_KmE5I5Tg5"/>
+@if($article->gambar_sampul)
+    <img class="w-full h-full object-cover transition-transform duration-500 hover:scale-105" alt="{{ $article->judul }}" src="{{ $article->gambar_sampul }}"/>
+@else
+    <div class="w-full h-full bg-surface-container flex items-center justify-center text-on-surface-variant">
+        <span class="material-symbols-outlined text-[36px]">newspaper</span>
+    </div>
+@endif
 <span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md font-label-dense text-label-dense text-on-surface font-semibold">
-              Agenda Akbar
-            </span>
+    {{ $article->kategori->nama ?? 'Berita & Agenda' }}
+</span>
 </div>
 <div class="p-6 flex flex-col gap-3 flex-1 justify-between">
 <div class="flex flex-col gap-2">
 <span class="font-label-dense text-label-dense text-on-surface-variant flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">calendar_today</span> 14 November 2025 • Aula Graha Penus
-              </span>
-<h3 class="font-title-md text-title-md text-on-surface hover:text-primary transition-colors">
-<a class="" href="#">Job Fair Tahunan SMK Plus Pelita Nusantara 2025: Hadirkan 35 Perusahaan dan 500 Lowongan Langsung</a>
+<span class="material-symbols-outlined text-[14px]">calendar_today</span> {{ $article->formatted_date }} • {{ $article->penulis_nama }}
+</span>
+<h3 class="font-title-md text-title-md text-on-surface hover:text-primary transition-colors line-clamp-2">
+<a href="{{ route('bkk.berita.detail', $article->slug) }}">{{ $article->judul }}</a>
 </h3>
 <p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-3">
-                Rangkaian bursa kerja terbuka mempertemukan calon wisudawan dengan perwakilan HR industri manufaktur, IT, perbankan, dan logistik se-Jabodetabek.
-              </p>
+    {{ $article->ringkasan }}
+</p>
 </div>
-<div class="pt-4 flex items-center justify-between font-label-dense text-label-dense text-primary font-semibold">
-<span class="">Baca Liputan Acara</span>
+<a href="{{ route('bkk.berita.detail', $article->slug) }}" class="pt-4 flex items-center justify-between font-label-dense text-label-dense text-primary font-semibold hover:translate-x-1 transition-transform">
+<span>Baca Selengkapnya</span>
 <span class="material-symbols-outlined text-[16px]">chevron_right</span>
-</div>
+</a>
 </div>
 </article>
-<!-- Article 2 -->
-<article class="flex flex-col rounded-lg bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-<div class="relative h-48 w-full bg-surface-container overflow-hidden">
-<img class="w-full h-full object-cover" data-alt="Indonesian vocational school students visiting modern industrial robotics laboratory and telecommunication data center, guided by industrial engineers with safety helmets" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwnoXXverFbXUIW9AsYhQD3YdiPfB8RG92eiGs--QX83whVC4Rahb0Xmcl2Qh-AMWQMbxThXy_NOI6gXyttX-x6X0lZKy-EBBR7TH511DWlzrQtWjj0sqOHhZxDdjdFa3xZZKcjhPbQvmDlAu62FWcOftCoQOdgffyXzhQ4UJXMxmw4CuID-R8Ma5hZ9OKpDEljY0xalLf1IdXVTrpjFFjR10_la2PKIzDTC6MGY0b6QwbeTNeDfAF"/>
-<span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md font-label-dense text-label-dense text-on-surface font-semibold">
-              Kunjungan Industri
-            </span>
+@empty
+<div class="col-span-3 py-12 flex flex-col items-center justify-center gap-3 bg-surface-container-lowest rounded-lg p-8 text-center">
+    <span class="material-symbols-outlined text-[48px] text-on-surface-variant/40">feed</span>
+    <h4 class="font-headline-sm text-headline-sm text-on-surface font-semibold">Belum Ada Berita Terbaru</h4>
+    <p class="font-body-dense text-body-dense text-on-surface-variant max-w-md">
+        Nantikan kabar terbaru seputar rekrutmen kerja dan agenda kegiatan bursa kerja di sini.
+    </p>
 </div>
-<div class="p-6 flex flex-col gap-3 flex-1 justify-between">
-<div class="flex flex-col gap-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">calendar_today</span> 28 Oktober 2025 • Sentul &amp; Jakarta
-              </span>
-<h3 class="font-title-md text-title-md text-on-surface hover:text-primary transition-colors">
-<a class="" href="#">Kunjungan Industri dan Sinkronisasi Kurikulum Bersama PT Astra Otoparts &amp; Telkom Indonesia</a>
-</h3>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-3">
-                Memperkuat standar kompetensi siswa jurusan RPL dan TKJ agar selaras dengan kebutuhan cloud infrastructure dan otomasi industri 4.0.
-              </p>
-</div>
-<div class="pt-4 flex items-center justify-between font-label-dense text-label-dense text-primary font-semibold">
-<span class="">Baca Selengkapnya</span>
-<span class="material-symbols-outlined text-[16px]">chevron_right</span>
-</div>
-</div>
-</article>
-<!-- Article 3 -->
-<article class="flex flex-col rounded-lg bg-surface-container-lowest overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-<div class="relative h-48 w-full bg-surface-container overflow-hidden">
-<img class="w-full h-full object-cover" data-alt="Close up professional HR mock interview session with cheerful young Indonesian female graduate student holding portfolio folder in bright office room" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ3DbasAo98Y6iTfMJa_lPRzTD22K45X0d1q097TxqgzaGF5JU22Zp9rCmLKCRWude8X7CjZ2n22YUjLtp-2U2naaWi-iiIbz2Et2DQEgYd1DpDqGPzst36nOLSfKJQHdJcJoWdUnEEw1ok42y6AUOaUnHzBW6mYCX2I7LcsxQq_Z49vhrQWyZJB72NqgrfbRYfGFvVlL_n_WYG02cMlAQvadRKAuutBuzozQfXBRbS1m67vrg8K0y"/>
-<span class="absolute top-3 left-3 px-3 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md font-label-dense text-label-dense text-on-surface font-semibold">
-              Tips &amp; Karir
-            </span>
-</div>
-<div class="p-6 flex flex-col gap-3 flex-1 justify-between">
-<div class="flex flex-col gap-2">
-<span class="font-label-dense text-label-dense text-on-surface-variant flex items-center gap-1">
-<span class="material-symbols-outlined text-[14px]">calendar_today</span> 15 Oktober 2025 • Panduan BKK
-              </span>
-<h3 class="font-title-md text-title-md text-on-surface hover:text-primary transition-colors">
-<a class="" href="#">5 Kunci Sukses Lolos Interview User untuk Fresh Graduate SMK Tanpa Pengalaman Formal</a>
-</h3>
-<p class="font-body-dense text-body-dense text-on-surface-variant line-clamp-3">
-                Bagaimana menceritakan pengalaman tugas akhir, kepemimpinan organisasi, serta kesiapan mental bekerja di bawah ritme industri profesional.
-              </p>
-</div>
-<div class="pt-4 flex items-center justify-between font-label-dense text-label-dense text-primary font-semibold">
-<span class="">Baca Panduan HR</span>
-<span class="material-symbols-outlined text-[16px]">chevron_right</span>
-</div>
-</div>
-</article>
+@endforelse
 </div>
 </div>
 </section>

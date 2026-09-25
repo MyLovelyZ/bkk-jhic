@@ -2,11 +2,13 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
-class bkkRoutingAndAuthTest extends TestCase
+class PpdbRoutingAndAuthTest extends TestCase
 {
+    use RefreshDatabase;
     /**
      * Test public routes can be accessed without authentication.
      */
