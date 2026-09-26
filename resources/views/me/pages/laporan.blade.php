@@ -108,7 +108,7 @@
 <script>
     function uploadBabDraft(id, title) {
         const btn = document.getElementById('btn-upload-' + id);
-        const badge = document.getElementById('badge-{{ $sec['id'] ?? '' }}') || document.getElementById('badge-' + id);
+        const badge = document.getElementById('badge-' + id);
         if (!btn) return;
 
         btn.disabled = true;
