@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\AdminBeritaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Me\MeController;
 use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,5 +48,15 @@ Route::prefix('bkk')->group(function () {
                 Route::delete('/berita/{id_berita}', [AdminBeritaController::class, 'destroy'])->name("bkk.{$prefix}.berita.destroy");
             });
         }
+    });
+
+    // 3. Router Group Terproteksi Khusus Siswa & Alumni: /bkk/me/*
+    Route::middleware('verify.auth:SISWA,ALUMNI')->prefix('me')->name('bkk.me.')->group(function () {
+        Route::get('/', [MeController::class, 'dashboard'])->name('index');
+        Route::get('/lamaran', [MeController::class, 'lamaran'])->name('lamaran');
+        Route::get('/cv', [MeController::class, 'cv'])->name('cv');
+        Route::get('/cv/edit', [MeController::class, 'cvEdit'])->name('cv.edit');
+        Route::get('/jurnal', [MeController::class, 'jurnal'])->name('jurnal');
+        Route::get('/laporan', [MeController::class, 'laporan'])->name('laporan');
     });
 });
