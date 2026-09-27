@@ -29,6 +29,11 @@ class TracerRespon extends Model
         return $this->belongsTo(ProfilSiswa::class, 'alumni_id', 'user_id');
     }
 
+    public function profilSiswa(): BelongsTo
+    {
+        return $this->belongsTo(ProfilSiswa::class, 'alumni_id', 'user_id');
+    }
+
     public function jawabanDetails(): HasMany
     {
         return $this->hasMany(TracerJawabanDetail::class, 'respon_id');

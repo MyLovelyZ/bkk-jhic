@@ -13,7 +13,7 @@ class MitraSeeder extends Seeder
         $defaultPassword = Hash::make('Password123!');
 
         Mitra::updateOrCreate(
-            ['npwp' => '01.234.567.8-012.000'],
+            ['npwp' => '01.234.567.8-091.000'],
             [
                 'nama_perusahaan' => 'PT Solusi Teknologi Nusantara',
                 'singkatan' => 'STN',

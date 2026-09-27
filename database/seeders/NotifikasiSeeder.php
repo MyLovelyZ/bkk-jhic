@@ -41,7 +41,7 @@ class NotifikasiSeeder extends Seeder
                 'is_accent' => true,
             ],
             [
-                'recipient_id' => '01.234.567.8-012.000',
+                'recipient_id' => '01.234.567.8-091.000',
                 'recipient_role' => 'MITRA',
                 'judul' => 'Pelamar Baru Mendaftar',
                 'deskripsi' => 'Ahmad Rizky Pratama (Siswa RPL SMK Penus) baru saja mengirimkan lamaran untuk posisi Web Application Support.',

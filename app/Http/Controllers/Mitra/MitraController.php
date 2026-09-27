@@ -32,11 +32,81 @@ class MitraController extends Controller
 
         try {
             if (Schema::hasTable('mitra') && Schema::hasTable('lowongan')) {
-                $dbMitra = Mitra::where('npwp', $profile['npwp'])->first();
+                $dbMitra = Mitra::where('npwp', $profile['npwp'])->first() ?? Mitra::first();
                 if ($dbMitra) {
-                    $dbLowonganCount = Lowongan::where('mitra_id', $dbMitra->id)->where('status', 'Aktif')->count();
-                    if ($dbLowonganCount > 0) {
-                        $metrics['lowongan_aktif'] = $dbLowonganCount;
+                    $profile['nama_perusahaan'] = $dbMitra->nama_perusahaan ?: $profile['nama_perusahaan'];
+                    $profile['pic_name'] = $dbMitra->pic_nama ?: $profile['pic_name'];
+                    $profile['npwp'] = $dbMitra->npwp ?: $profile['npwp'];
+
+                    $dbLowongans = Lowongan::with('mitra')
+                        ->where('mitra_id', $dbMitra->id)
+                        ->latest('created_at')
+                        ->get();
+
+                    if ($dbLowongans->isNotEmpty()) {
+                        $vacancies = $dbLowongans->map(function ($l) {
+                            return [
+                                'id' => (string) $l->id,
+                                'title' => $l->judul,
+                                'tipe' => $l->tipe,
+                                'tipe_badge' => $l->tipe_badge ?: ($l->tipe === 'PKL' ? 'Magang / PKL Siswa' : 'Full-Time Lulusan'),
+                                'lokasi' => $l->lokasi,
+                                'kategori' => $l->kategori_posisi,
+                                'gaji' => $l->gaji_kompensasi,
+                                'status' => $l->status,
+                                'deadline' => $l->deadline ? $l->deadline->format('Y-m-d') : date('Y-m-d'),
+                                'jurusan' => $l->target_jurusan,
+                                'pelamar_count' => Schema::hasTable('lamaran') ? $l->lamaran()->count() : 0,
+                                'interview_count' => Schema::hasTable('lamaran') ? $l->lamaran()->whereIn('status', ['Dipanggil', 'Interview'])->count() : 0,
+                                'diterima_count' => Schema::hasTable('lamaran') ? $l->lamaran()->where('status', 'Diterima')->count() : 0,
+                                'kuota' => $l->kuota,
+                                'deskripsi' => $l->deskripsi,
+                                'persyaratan' => $l->persyaratan_json ?: [],
+                                'benefit' => $l->benefit_json ?: [],
+                                'created_at' => $l->created_at ? $l->created_at->format('Y-m-d') : date('Y-m-d'),
+                            ];
+                        })->all();
+                    }
+
+                    if (Schema::hasTable('lamaran')) {
+                        $lowonganIds = $dbMitra->lowongan()->pluck('id');
+                        $dbApplicants = Lamaran::with(['profilSiswa', 'lowongan'])
+                            ->whereIn('lowongan_id', $lowonganIds)
+                            ->latest()
+                            ->get();
+
+                        if ($dbApplicants->isNotEmpty()) {
+                            $allApplicants = $dbApplicants->map(function ($lam) {
+                                $siswa = $lam->profilSiswa;
+                                return [
+                                    'id' => $lam->kode_lamaran ?: (string) $lam->id,
+                                    'lowongan_id' => (string) $lam->lowongan_id,
+                                    'lowongan_title' => $lam->lowongan?->judul ?? 'Lowongan',
+                                    'nama' => $siswa?->nama_lengkap ?? 'Pelamar',
+                                    'nis_nisn' => $siswa ? ($siswa->nis ?: $siswa->nisn) : '-',
+                                    'status_pendidikan' => $siswa ? ($siswa->status_lulus === 'Alumni' ? 'Alumni' : 'Siswa Aktif ' . ($siswa->kelas ?? '')) : 'Siswa Aktif',
+                                    'jurusan' => $siswa?->jurusan ?? 'Umum',
+                                    'email' => $siswa?->email ?? '',
+                                    'no_hp' => $siswa?->telepon ?? '',
+                                    'cv_score' => $lam->skor_match_ai ?: 90,
+                                    'status' => $lam->status ?: 'Dikirim',
+                                    'tanggal_melamar' => $lam->tanggal_melamar ? $lam->tanggal_melamar->format('Y-m-d') : ($lam->created_at ? $lam->created_at->format('Y-m-d') : date('Y-m-d')),
+                                    'lokasi' => $siswa?->kota ?? 'Bogor',
+                                    'portfolio_url' => $siswa?->portofolio_url ?? '',
+                                    'skills' => [],
+                                    'ringkasan_diri' => $lam->pesan_pelamar ?: ($siswa?->bio_singkat ?? ''),
+                                ];
+                            })->all();
+                        }
+                    }
+
+                    $metrics['total_lowongan'] = count($vacancies);
+                    $metrics['lowongan_aktif'] = count(array_filter($vacancies, fn ($v) => $v['status'] === 'Aktif'));
+                    $metrics['total_pelamar'] = count($allApplicants);
+                    $metrics['pelamar_interview'] = count(array_filter($allApplicants, fn ($a) => in_array($a['status'], ['Dipanggil', 'Interview'])));
+                    $metrics['pelamar_diterima'] = count(array_filter($allApplicants, fn ($a) => $a['status'] === 'Diterima'));
+                    if (Schema::hasTable('penempatan_pkl')) {
+                        $metrics['siswa_aktif_pkl'] = \App\Models\PenempatanPkl::where('mitra_id', $dbMitra->id)->where('status', 'BERJALAN')->count();
                     }
                 }
             }
@@ -60,6 +130,43 @@ class MitraController extends Controller
     {
         $profile = $this->dataService->getProfile();
         $vacancies = $this->dataService->getVacancies();
+
+        try {
+            if (Schema::hasTable('mitra') && Schema::hasTable('lowongan')) {
+                $dbMitra = Mitra::where('npwp', $profile['npwp'])->first() ?? Mitra::first();
+                if ($dbMitra) {
+                    $dbLowongans = Lowongan::with('mitra')
+                        ->where('mitra_id', $dbMitra->id)
+                        ->latest('created_at')
+                        ->get();
+
+                    if ($dbLowongans->isNotEmpty()) {
+                        $vacancies = $dbLowongans->map(function ($l) {
+                            return [
+                                'id' => (string) $l->id,
+                                'title' => $l->judul,
+                                'tipe' => $l->tipe,
+                                'tipe_badge' => $l->tipe_badge ?: ($l->tipe === 'PKL' ? 'Magang / PKL Siswa' : 'Full-Time Lulusan'),
+                                'lokasi' => $l->lokasi,
+                                'kategori' => $l->kategori_posisi,
+                                'gaji' => $l->gaji_kompensasi,
+                                'status' => $l->status,
+                                'deadline' => $l->deadline ? $l->deadline->format('Y-m-d') : date('Y-m-d'),
+                                'jurusan' => $l->target_jurusan,
+                                'pelamar_count' => Schema::hasTable('lamaran') ? $l->lamaran()->count() : 0,
+                                'interview_count' => Schema::hasTable('lamaran') ? $l->lamaran()->whereIn('status', ['Dipanggil', 'Interview'])->count() : 0,
+                                'diterima_count' => Schema::hasTable('lamaran') ? $l->lamaran()->where('status', 'Diterima')->count() : 0,
+                                'kuota' => $l->kuota,
+                                'deskripsi' => $l->deskripsi,
+                                'persyaratan' => $l->persyaratan_json ?: [],
+                                'benefit' => $l->benefit_json ?: [],
+                                'created_at' => $l->created_at ? $l->created_at->format('Y-m-d') : date('Y-m-d'),
+                            ];
+                        })->all();
+                    }
+                }
+            }
+        } catch (\Throwable) {}
 
         $search = strtolower(trim((string) $request->query('q', '')));
         $statusFilter = $request->query('status');
@@ -238,6 +345,30 @@ class MitraController extends Controller
         $profile = $this->dataService->getProfile();
         $vacancy = $this->dataService->getVacancyById($id_lowongan);
 
+        try {
+            if (Schema::hasTable('lowongan')) {
+                $dbLowongan = Lowongan::where('id', is_numeric($id_lowongan) ? (int)$id_lowongan : 0)
+                    ->orWhere('slug', $id_lowongan)
+                    ->first();
+
+                if ($dbLowongan) {
+                    $vacancy = [
+                        'id' => (string) $dbLowongan->id,
+                        'title' => $dbLowongan->judul,
+                        'tipe' => $dbLowongan->tipe,
+                        'tipe_badge' => $dbLowongan->tipe_badge ?: ($dbLowongan->tipe === 'PKL' ? 'Magang / PKL Siswa' : 'Full-Time Lulusan'),
+                        'jurusan' => $dbLowongan->target_jurusan,
+                        'lokasi' => $dbLowongan->lokasi,
+                        'gaji' => $dbLowongan->gaji_kompensasi,
+                        'status' => $dbLowongan->status,
+                        'deadline' => $dbLowongan->deadline ? $dbLowongan->deadline->format('Y-m-d') : date('Y-m-d'),
+                        'kuota' => $dbLowongan->kuota,
+                        'deskripsi' => $dbLowongan->deskripsi,
+                    ];
+                }
+            }
+        } catch (\Throwable) {}
+
         if (!$vacancy) {
             $all = $this->dataService->getVacancies();
             $vacancy = $all[0];
@@ -245,6 +376,40 @@ class MitraController extends Controller
         }
 
         $applicants = $this->dataService->getApplicantsByVacancy($id_lowongan);
+
+        try {
+            if (Schema::hasTable('lamaran') && is_numeric($id_lowongan)) {
+                $dbApplicants = Lamaran::with(['profilSiswa', 'lowongan'])
+                    ->where('lowongan_id', (int) $id_lowongan)
+                    ->latest()
+                    ->get();
+
+                if ($dbApplicants->isNotEmpty()) {
+                    $applicants = $dbApplicants->map(function ($lam) {
+                        $siswa = $lam->profilSiswa;
+                        return [
+                            'id' => $lam->kode_lamaran ?: (string) $lam->id,
+                            'lowongan_id' => (string) $lam->lowongan_id,
+                            'lowongan_title' => $lam->lowongan?->judul ?? 'Lowongan',
+                            'nama' => $siswa?->nama_lengkap ?? 'Pelamar',
+                            'nis_nisn' => $siswa ? ($siswa->nis ?: $siswa->nisn) : '-',
+                            'status_pendidikan' => $siswa ? ($siswa->status_lulus === 'Alumni' ? 'Alumni' : 'Siswa Aktif ' . ($siswa->kelas ?? '')) : 'Siswa Aktif',
+                            'jurusan' => $siswa?->jurusan ?? 'Umum',
+                            'email' => $siswa?->email ?? '',
+                            'no_hp' => $siswa?->telepon ?? '',
+                            'cv_score' => $lam->skor_match_ai ?: 90,
+                            'status' => $lam->status ?: 'Dikirim',
+                            'tanggal_melamar' => $lam->tanggal_melamar ? $lam->tanggal_melamar->format('Y-m-d') : ($lam->created_at ? $lam->created_at->format('Y-m-d') : date('Y-m-d')),
+                            'lokasi' => $siswa?->kota ?? 'Bogor',
+                            'portfolio_url' => $siswa?->portofolio_url ?? '',
+                            'skills' => [],
+                            'ringkasan_diri' => $lam->pesan_pelamar ?: ($siswa?->bio_singkat ?? ''),
+                        ];
+                    })->all();
+                }
+            }
+        } catch (\Throwable) {}
+
         if (empty($applicants)) {
             $applicants = $this->dataService->getAllApplicants();
         }
@@ -281,12 +446,68 @@ class MitraController extends Controller
         $profile = $this->dataService->getProfile();
         $vacancy = $this->dataService->getVacancyById($id_lowongan);
 
+        try {
+            if (Schema::hasTable('lowongan')) {
+                $dbLowongan = Lowongan::where('id', is_numeric($id_lowongan) ? (int)$id_lowongan : 0)
+                    ->orWhere('slug', $id_lowongan)
+                    ->first();
+
+                if ($dbLowongan) {
+                    $vacancy = [
+                        'id' => (string) $dbLowongan->id,
+                        'title' => $dbLowongan->judul,
+                        'tipe' => $dbLowongan->tipe,
+                        'tipe_badge' => $dbLowongan->tipe_badge ?: ($dbLowongan->tipe === 'PKL' ? 'Magang / PKL Siswa' : 'Full-Time Lulusan'),
+                        'jurusan' => $dbLowongan->target_jurusan,
+                        'lokasi' => $dbLowongan->lokasi,
+                        'gaji' => $dbLowongan->gaji_kompensasi,
+                        'status' => $dbLowongan->status,
+                        'deadline' => $dbLowongan->deadline ? $dbLowongan->deadline->format('Y-m-d') : date('Y-m-d'),
+                        'kuota' => $dbLowongan->kuota,
+                        'deskripsi' => $dbLowongan->deskripsi,
+                    ];
+                }
+            }
+        } catch (\Throwable) {}
+
         if (!$vacancy) {
             $all = $this->dataService->getVacancies();
             $vacancy = $all[0];
         }
 
         $applicant = $this->dataService->getApplicant($id_lowongan, $id_pelamar);
+
+        try {
+            if (Schema::hasTable('lamaran')) {
+                $lamaran = Lamaran::where('kode_lamaran', $id_pelamar)
+                    ->orWhere('id', is_numeric($id_pelamar) ? (int)$id_pelamar : 0)
+                    ->with(['profilSiswa', 'lowongan'])
+                    ->first();
+
+                if ($lamaran) {
+                    $siswa = $lamaran->profilSiswa;
+                    $applicant = [
+                        'id' => $lamaran->kode_lamaran ?: (string) $lamaran->id,
+                        'lowongan_id' => (string) $lamaran->lowongan_id,
+                        'lowongan_title' => $lamaran->lowongan?->judul ?? 'Lowongan',
+                        'nama' => $siswa?->nama_lengkap ?? 'Pelamar',
+                        'nis_nisn' => $siswa ? ($siswa->nis ?: $siswa->nisn) : '-',
+                        'status_pendidikan' => $siswa ? ($siswa->status_lulus === 'Alumni' ? 'Alumni' : 'Siswa Aktif ' . ($siswa->kelas ?? '')) : 'Siswa Aktif',
+                        'jurusan' => $siswa?->jurusan ?? 'Umum',
+                        'email' => $siswa?->email ?? '',
+                        'no_hp' => $siswa?->telepon ?? '',
+                        'cv_score' => $lamaran->skor_match_ai ?: 90,
+                        'status' => $lamaran->status ?: 'Dikirim',
+                        'tanggal_melamar' => $lamaran->tanggal_melamar ? $lamaran->tanggal_melamar->format('Y-m-d') : ($lamaran->created_at ? $lamaran->created_at->format('Y-m-d') : date('Y-m-d')),
+                        'lokasi' => $siswa?->kota ?? 'Bogor',
+                        'portfolio_url' => $siswa?->portofolio_url ?? '',
+                        'skills' => ['Kompetensi Kejuruan', 'Disiplin Kerja', 'Kreativitas Solutif'],
+                        'ringkasan_diri' => $lamaran->pesan_pelamar ?: ($siswa?->bio_singkat ?? 'Siswa/Alumni berkomitmen tinggi dalam implementasi kompetensi teknis di industri.'),
+                    ];
+                }
+            }
+        } catch (\Throwable) {}
+
         if (!$applicant) {
             $allApplicants = $this->dataService->getAllApplicants();
             $applicant = $allApplicants[0];

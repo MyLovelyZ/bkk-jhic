@@ -11,7 +11,7 @@ class LowonganSeeder extends Seeder
 {
     public function run(): void
     {
-        $stn = Mitra::where('npwp', '01.234.567.8-012.000')->first();
+        $stn = Mitra::where('npwp', '01.234.567.8-091.000')->first();
         $telkom = Mitra::where('npwp', '02.345.678.9-501.000')->first();
         $bca = Mitra::where('npwp', '03.456.789.0-021.000')->first();
         $cni = Mitra::where('npwp', '04.567.890.1-401.000')->first();

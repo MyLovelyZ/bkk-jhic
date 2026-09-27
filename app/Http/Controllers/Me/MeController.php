@@ -16,6 +16,7 @@ use App\Services\MeDataService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class MeController extends Controller
@@ -34,28 +35,32 @@ class MeController extends Controller
         $role = $authUser['role'];
 
         $profile = $this->dataService->getProfile($authUser);
-        $applications = $this->dataService->getApplications($role, $userId);
-        $vacancies = $this->dataService->getVacancies($role);
+        $applications = $this->getMappedApplications($userId) ?: $this->dataService->getApplications($role, $userId);
+        $vacancies = $this->getMappedVacancies($role) ?: $this->dataService->getVacancies($role);
         $cvScore = $this->dataService->getCvScore($role, $userId);
-        $notifications = $this->dataService->getNotifications($userId);
+        $notifications = $this->getMappedNotifications($userId, $role) ?: $this->dataService->getNotifications($userId);
 
-        // Sinkronisasi data riil dari database jika record siswa/alumni ada
-        $dbSiswa = ProfilSiswa::with(['resumes', 'lamarans.lowongan.mitra', 'penempatanPkl.mitra'])->find($userId);
-        if ($dbSiswa) {
-            $profile['nis'] = $dbSiswa->nis;
-            $profile['jurusan'] = $dbSiswa->jurusan;
-            $profile['kelas'] = $dbSiswa->kelas ?? $profile['kelas'];
-            $profile['kelengkapan_profil'] = $dbSiswa->kelengkapan_profil;
-            $profile['status_aktivitas'] = $dbSiswa->status_aktivitas ?? $profile['status_aktivitas'];
+        // Sinkronisasi data riil profil dari database jika record siswa/alumni ada
+        try {
+            if (Schema::hasTable('profil_siswa')) {
+                $dbSiswa = ProfilSiswa::with(['primaryResume', 'penempatanPkl.mitra'])->find($userId);
+                if ($dbSiswa) {
+                    $profile['nis'] = $dbSiswa->nis;
+                    $profile['jurusan'] = $dbSiswa->jurusan;
+                    $profile['kelas'] = $dbSiswa->kelas ?? $profile['kelas'];
+                    $profile['completion'] = $dbSiswa->kelengkapan_profil ?: $profile['completion'];
+                    $profile['status_aktivitas'] = $dbSiswa->status_aktivitas ?? $profile['status'];
 
-            $primaryCv = $dbSiswa->primaryResume;
-            if ($primaryCv) {
-                $cvScore['overall'] = $primaryCv->skor_total_ai;
-                if (!empty($primaryCv->skor_parameter_json)) {
-                    $cvScore['parameters'] = $primaryCv->skor_parameter_json;
+                    $primaryCv = $dbSiswa->primaryResume;
+                    if ($primaryCv) {
+                        $cvScore['total'] = $primaryCv->skor_total_ai;
+                        if (!empty($primaryCv->skor_parameter_json)) {
+                            $cvScore['params'] = $primaryCv->skor_parameter_json;
+                        }
+                    }
                 }
             }
-        }
+        } catch (\Throwable) {}
 
         $activeApplications = array_values(array_filter($applications, fn ($a) => !in_array($a['status'], ['Diterima', 'Ditolak'])));
         $interviews = array_values(array_filter($applications, fn ($a) => $a['status'] === 'Dipanggil Interview'));
@@ -96,8 +101,8 @@ class MeController extends Controller
         $role = $authUser['role'];
 
         $profile = $this->dataService->getProfile($authUser);
-        $applications = $this->dataService->getApplications($role, $userId);
-        $notifications = $this->dataService->getNotifications($userId);
+        $applications = $this->getMappedApplications($userId) ?: $this->dataService->getApplications($role, $userId);
+        $notifications = $this->getMappedNotifications($userId, $role) ?: $this->dataService->getNotifications($userId);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -129,17 +134,23 @@ class MeController extends Controller
         $cvScore = $this->dataService->getCvScore($role, $userId);
         $suggestions = $this->dataService->getCvSuggestions($role, $userId);
         $cvMarkdown = $this->dataService->getCvMarkdown($role, $profile, $userId);
-        $notifications = $this->dataService->getNotifications($userId);
+        $notifications = $this->getMappedNotifications($userId, $role) ?: $this->dataService->getNotifications($userId);
 
-        // Ambil CV Markdown dari database jika tersimpan
-        $dbCv = CvResume::where('siswa_id', $userId)->where('is_primary', true)->first();
-        if ($dbCv && !empty($dbCv->konten_markdown)) {
-            $cvMarkdown = $dbCv->konten_markdown;
-            $cvScore['overall'] = $dbCv->skor_total_ai;
-            if (!empty($dbCv->saran_perbaikan_ai_json)) {
-                $suggestions = $dbCv->saran_perbaikan_ai_json;
+        try {
+            if (Schema::hasTable('cv_resumes')) {
+                $dbCv = CvResume::where('siswa_id', $userId)->where('is_primary', true)->first();
+                if ($dbCv && !empty($dbCv->konten_markdown)) {
+                    $cvMarkdown = $dbCv->konten_markdown;
+                    $cvScore['total'] = $dbCv->skor_total_ai;
+                    if (!empty($dbCv->skor_parameter_json)) {
+                        $cvScore['params'] = $dbCv->skor_parameter_json;
+                    }
+                    if (!empty($dbCv->saran_perbaikan_ai_json)) {
+                        $suggestions = $dbCv->saran_perbaikan_ai_json;
+                    }
+                }
             }
-        }
+        } catch (\Throwable) {}
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -174,12 +185,16 @@ class MeController extends Controller
         $profile = $this->dataService->getProfile($authUser);
         $cvScore = $this->dataService->getCvScore($role, $userId);
         $cvMarkdown = $this->dataService->getCvMarkdown($role, $profile, $userId);
-        $notifications = $this->dataService->getNotifications($userId);
+        $notifications = $this->getMappedNotifications($userId, $role) ?: $this->dataService->getNotifications($userId);
 
-        $dbCv = CvResume::where('siswa_id', $userId)->where('is_primary', true)->first();
-        if ($dbCv && !empty($dbCv->konten_markdown)) {
-            $cvMarkdown = $dbCv->konten_markdown;
-        }
+        try {
+            if (Schema::hasTable('cv_resumes')) {
+                $dbCv = CvResume::where('siswa_id', $userId)->where('is_primary', true)->first();
+                if ($dbCv && !empty($dbCv->konten_markdown)) {
+                    $cvMarkdown = $dbCv->konten_markdown;
+                }
+            }
+        } catch (\Throwable) {}
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -209,13 +224,17 @@ class MeController extends Controller
 
         $markdown = $request->input('markdown');
 
-        $cv = CvResume::where('siswa_id', $userId)->where('is_primary', true)->first();
-        if ($cv && $markdown) {
-            $cv->update([
-                'konten_markdown' => $markdown,
-                'terakhir_dianalisis_ai' => now(),
-            ]);
-        }
+        try {
+            if (Schema::hasTable('cv_resumes') && $markdown) {
+                $cv = CvResume::where('siswa_id', $userId)->where('is_primary', true)->first();
+                if ($cv) {
+                    $cv->update([
+                        'konten_markdown' => $markdown,
+                        'terakhir_dianalisis_ai' => now(),
+                    ]);
+                }
+            }
+        } catch (\Throwable) {}
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -238,8 +257,8 @@ class MeController extends Controller
 
         $profile = $this->dataService->getProfile($authUser);
         $isSiswa = ($role === 'SISWA');
-        $jurnalEntries = $this->dataService->getJurnalEntries($userId);
-        $notifications = $this->dataService->getNotifications($userId);
+        $jurnalEntries = $this->getMappedJurnalEntries($userId) ?: $this->dataService->getJurnalEntries($userId);
+        $notifications = $this->getMappedNotifications($userId, $role) ?: $this->dataService->getNotifications($userId);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -272,18 +291,22 @@ class MeController extends Controller
             'durasi_jam' => ['nullable', 'integer', 'min:1', 'max:12'],
         ]);
 
-        $penempatan = PenempatanPkl::where('siswa_id', $userId)->where('status', 'BERJALAN')->first();
+        try {
+            if (Schema::hasTable('penempatan_pkl') && Schema::hasTable('pkl_jurnal_harian')) {
+                $penempatan = PenempatanPkl::where('siswa_id', $userId)->where('status', 'BERJALAN')->first();
 
-        if ($penempatan) {
-            PklJurnalHarian::create([
-                'penempatan_pkl_id' => $penempatan->id,
-                'siswa_id' => $userId,
-                'tanggal' => $validated['tanggal'],
-                'aktivitas' => $validated['aktivitas'],
-                'durasi_jam' => $validated['durasi_jam'] ?? 8,
-                'status' => 'Menunggu',
-            ]);
-        }
+                if ($penempatan) {
+                    PklJurnalHarian::create([
+                        'penempatan_pkl_id' => $penempatan->id,
+                        'siswa_id' => $userId,
+                        'tanggal' => $validated['tanggal'],
+                        'aktivitas' => $validated['aktivitas'],
+                        'durasi_jam' => $validated['durasi_jam'] ?? 8,
+                        'status' => 'Menunggu',
+                    ]);
+                }
+            }
+        } catch (\Throwable) {}
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -306,8 +329,8 @@ class MeController extends Controller
 
         $profile = $this->dataService->getProfile($authUser);
         $isSiswa = ($role === 'SISWA');
-        $laporanSections = $this->dataService->getLaporanSections($userId);
-        $notifications = $this->dataService->getNotifications($userId);
+        $laporanSections = $this->getMappedLaporanSections($userId) ?: $this->dataService->getLaporanSections($userId);
+        $notifications = $this->getMappedNotifications($userId, $role) ?: $this->dataService->getNotifications($userId);
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -339,22 +362,26 @@ class MeController extends Controller
             'judul_bab' => ['required', 'string'],
         ]);
 
-        $penempatan = PenempatanPkl::where('siswa_id', $userId)->where('status', 'BERJALAN')->first();
+        try {
+            if (Schema::hasTable('penempatan_pkl') && Schema::hasTable('pkl_laporan_akhir')) {
+                $penempatan = PenempatanPkl::where('siswa_id', $userId)->where('status', 'BERJALAN')->first();
 
-        if ($penempatan) {
-            PklLaporanAkhir::updateOrCreate(
-                [
-                    'penempatan_pkl_id' => $penempatan->id,
-                    'nomor_bab' => $validated['nomor_bab'],
-                ],
-                [
-                    'siswa_id' => $userId,
-                    'judul_bab' => $validated['judul_bab'],
-                    'status' => 'Ditinjau',
-                    'terakhir_diperbarui' => now()->toDateString(),
-                ]
-            );
-        }
+                if ($penempatan) {
+                    PklLaporanAkhir::updateOrCreate(
+                        [
+                            'penempatan_pkl_id' => $penempatan->id,
+                            'nomor_bab' => $validated['nomor_bab'],
+                        ],
+                        [
+                            'siswa_id' => $userId,
+                            'judul_bab' => $validated['judul_bab'],
+                            'status' => 'Ditinjau',
+                            'terakhir_diperbarui' => now()->toDateString(),
+                        ]
+                    );
+                }
+            }
+        } catch (\Throwable) {}
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -406,13 +433,15 @@ class MeController extends Controller
             'catatan_seleksi' => 'Berkas pendaftaran otomatis diverifikasi sistem.',
         ]);
 
-        LamaranRiwayatStatus::create([
-            'lamaran_id' => $lamaran->id,
-            'judul_tahapan' => 'Lamaran Terkirim',
-            'deskripsi' => 'Pendaftaran diajukan melalui portal BKK Penus.',
-            'diubah_oleh_id' => $userId,
-            'diubah_oleh_role' => $authUser['role'],
-        ]);
+        if (Schema::hasTable('lamaran_riwayat_status')) {
+            LamaranRiwayatStatus::create([
+                'lamaran_id' => $lamaran->id,
+                'judul_tahapan' => 'Lamaran Terkirim',
+                'deskripsi' => 'Pendaftaran diajukan melalui portal BKK Penus.',
+                'diubah_oleh_id' => $userId,
+                'diubah_oleh_role' => $authUser['role'],
+            ]);
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -423,6 +452,192 @@ class MeController extends Controller
         }
 
         return redirect()->route('bkk.me.lamaran')->with('success', "Lamaran berhasil diajukan dengan Kode {$kodeLamaran}!");
+    }
+
+    /**
+     * Mappings Helper dari Eloquent ke Array View
+     */
+    protected function getMappedApplications(string $userId): array
+    {
+        try {
+            if (Schema::hasTable('lamaran')) {
+                $dbLamarans = Lamaran::with(['lowongan.mitra', 'interview'])
+                    ->where('siswa_id', $userId)
+                    ->latest('tanggal_melamar')
+                    ->get();
+
+                if ($dbLamarans->isNotEmpty()) {
+                    return $dbLamarans->map(function ($l) {
+                        $lowongan = $l->lowongan;
+                        $mitra = $lowongan?->mitra;
+                        $interview = $l->interview;
+                        $tgl = $l->tanggal_melamar ? $l->tanggal_melamar->format('d M Y') : ($l->created_at ? $l->created_at->format('d M Y') : date('d M Y'));
+
+                        return [
+                            'id' => $l->kode_lamaran,
+                            'code' => $l->kode_lamaran,
+                            'position' => $lowongan?->judul ?? 'Posisi Terpilih',
+                            'role' => $lowongan?->judul ?? 'Posisi Terpilih',
+                            'company' => $mitra?->nama_perusahaan ?? 'Mitra Industri',
+                            'mitra' => $mitra?->sektor_industri ?? 'Teknologi & Operasional',
+                            'type' => $lowongan?->tipe === 'PKL' ? 'PKL / Magang' : 'Full-time',
+                            'location' => $lowongan?->lokasi ?? 'Bogor',
+                            'date' => $tgl,
+                            'applied_at' => $tgl,
+                            'status' => $l->status,
+                            'color' => '#1b283b',
+                            'step' => $l->step_tahapan ?: 1,
+                            'match_score' => $l->skor_match_ai ?: 92,
+                            'timeline' => [
+                                ['date' => $tgl, 'title' => 'Lamaran Dikirim', 'desc' => 'Berkas dan CV diajukan ke sistem BKK.', 'done' => true],
+                                ['date' => '', 'title' => 'Verifikasi Berkas BKK', 'desc' => 'BKK Penus memvalidasi kualifikasi.', 'done' => in_array($l->status, ['Sedang Ditinjau', 'Dipanggil Interview', 'Diterima', 'Ditolak'])],
+                                ['date' => '', 'title' => 'Tahap Seleksi & Interview', 'desc' => 'Ulasan oleh mitra industri atau pemanggilan interview.', 'done' => in_array($l->status, ['Dipanggil Interview', 'Diterima'])],
+                                ['date' => '', 'title' => 'Pengumuman Hasil', 'desc' => 'Status akhir penerimaan.', 'done' => in_array($l->status, ['Diterima', 'Ditolak'])],
+                            ],
+                            'interview' => $interview ? [
+                                'date' => $interview->tanggal_interview ? $interview->tanggal_interview->format('l, d M Y') : '',
+                                'time' => $interview->waktu_interview ?? '09:00 WIB',
+                                'mode' => $interview->mode ?? 'Tatap Muka',
+                                'place' => $interview->lokasi_atau_url ?? 'Kampus BKK / Kantor Mitra',
+                                'location' => $interview->lokasi_atau_url ?? 'Kampus BKK / Kantor Mitra',
+                                'pic' => $interview->pic_pewawancara ?? 'Tim HRD Mitra',
+                                'instructions' => $interview->instruksi_khusus ?? 'Membawa berkas cetak dan mengenakan pakaian rapi.',
+                                'notes' => $interview->instruksi_khusus ?? '',
+                            ] : null,
+                        ];
+                    })->all();
+                }
+            }
+        } catch (\Throwable) {}
+
+        return [];
+    }
+
+    protected function getMappedVacancies(string $role): array
+    {
+        try {
+            if (Schema::hasTable('lowongan')) {
+                $tipeTarget = ($role === 'SISWA') ? 'PKL' : 'Kerja';
+                $dbLowongans = Lowongan::with('mitra')
+                    ->where('status', 'Aktif')
+                    ->where('tipe', $tipeTarget)
+                    ->latest('created_at')
+                    ->take(6)
+                    ->get();
+
+                if ($dbLowongans->isEmpty()) {
+                    $dbLowongans = Lowongan::with('mitra')
+                        ->where('status', 'Aktif')
+                        ->latest('created_at')
+                        ->take(6)
+                        ->get();
+                }
+
+                if ($dbLowongans->isNotEmpty()) {
+                    return $dbLowongans->map(function ($l) {
+                        $jurusanTags = array_values(array_filter(array_map('trim', explode(',', (string) $l->target_jurusan))));
+                        if (empty($jurusanTags)) {
+                            $jurusanTags = ['Kompetensi Kejuruan', 'Sertifikasi Industri'];
+                        }
+
+                        return [
+                            'id' => (string) $l->id,
+                            'title' => $l->judul,
+                            'company' => $l->mitra?->nama_perusahaan ?? 'Mitra Industri',
+                            'type' => $l->tipe === 'PKL' ? 'PKL / Magang' : 'Full-time',
+                            'jurusan' => $l->target_jurusan,
+                            'location' => $l->lokasi,
+                            'salary' => $l->gaji_kompensasi ?? 'Kompetitif UMK',
+                            'deadline' => $l->deadline ? $l->deadline->format('d M Y') : 'Open',
+                            'match' => 95,
+                            'tags' => $jurusanTags,
+                            'color' => '#1b283b',
+                        ];
+                    })->all();
+                }
+            }
+        } catch (\Throwable) {}
+
+        return [];
+    }
+
+    protected function getMappedJurnalEntries(string $userId): array
+    {
+        try {
+            if (Schema::hasTable('pkl_jurnal_harian')) {
+                $dbJurnals = PklJurnalHarian::where('siswa_id', $userId)
+                    ->latest('tanggal')
+                    ->get();
+
+                if ($dbJurnals->isNotEmpty()) {
+                    return $dbJurnals->map(function ($j) {
+                        return [
+                            'id' => $j->id,
+                            'date' => $j->tanggal ? $j->tanggal->format('d M Y') : $j->created_at->format('d M Y'),
+                            'hours' => $j->durasi_jam,
+                            'activity' => $j->aktivitas,
+                            'status' => $j->status,
+                            'catatan' => $j->catatan_revisi,
+                            'note' => $j->catatan_revisi,
+                        ];
+                    })->all();
+                }
+            }
+        } catch (\Throwable) {}
+
+        return [];
+    }
+
+    protected function getMappedLaporanSections(string $userId): array
+    {
+        try {
+            if (Schema::hasTable('pkl_laporan_akhir')) {
+                $dbLaporans = PklLaporanAkhir::where('siswa_id', $userId)
+                    ->orderBy('nomor_bab')
+                    ->get();
+
+                if ($dbLaporans->isNotEmpty()) {
+                    return $dbLaporans->map(function ($l) {
+                        return [
+                            'id' => $l->nomor_bab,
+                            'title' => $l->judul_bab,
+                            'status' => $l->status,
+                            'note' => $l->catatan_pembimbing ?? 'Belum ada catatan pembimbing',
+                            'updated' => $l->terakhir_diperbarui ? $l->terakhir_diperbarui->format('d M Y') : ($l->updated_at ? $l->updated_at->format('d M Y') : 'Baru saja'),
+                        ];
+                    })->all();
+                }
+            }
+        } catch (\Throwable) {}
+
+        return [];
+    }
+
+    protected function getMappedNotifications(string $userId, string $role): array
+    {
+        try {
+            if (Schema::hasTable('notifikasi')) {
+                $dbNotifs = Notifikasi::forRecipient($userId, $role)->latest('created_at')->take(8)->get();
+                if ($dbNotifs->isNotEmpty()) {
+                    return $dbNotifs->map(function ($n) {
+                        return [
+                            'id' => $n->id,
+                            'title' => $n->judul,
+                            'message' => $n->deskripsi,
+                            'desc' => $n->deskripsi,
+                            'type' => $n->tipe_notifikasi,
+                            'time' => $n->created_at ? $n->created_at->diffForHumans() : 'Baru saja',
+                            'is_read' => $n->is_read,
+                            'unread' => !$n->is_read,
+                            'accent' => $n->is_accent,
+                            'url' => $n->url_action ?? '#',
+                        ];
+                    })->all();
+                }
+            }
+        } catch (\Throwable) {}
+
+        return [];
     }
 
     /**

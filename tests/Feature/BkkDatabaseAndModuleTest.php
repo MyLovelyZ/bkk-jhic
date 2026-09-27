@@ -96,7 +96,7 @@ class BkkDatabaseAndModuleTest extends TestCase
 
         // Mitra IDUKA
         $this->assertGreaterThanOrEqual(5, Mitra::count());
-        $this->assertDatabaseHas('mitra', ['npwp' => '01.234.567.8-012.000']);
+        $this->assertDatabaseHas('mitra', ['npwp' => '01.234.567.8-091.000']);
 
         // Lowongan
         $this->assertGreaterThanOrEqual(4, Lowongan::count());

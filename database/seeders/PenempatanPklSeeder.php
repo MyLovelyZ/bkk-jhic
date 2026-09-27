@@ -14,7 +14,7 @@ class PenempatanPklSeeder extends Seeder
     public function run(): void
     {
         $siswa = ProfilSiswa::find('usr-siswa-001');
-        $mitra = Mitra::where('npwp', '01.234.567.8-012.000')->first();
+        $mitra = Mitra::where('npwp', '01.234.567.8-091.000')->first();
 
         if ($siswa && $mitra) {
             $penempatan = PenempatanPkl::updateOrCreate(
