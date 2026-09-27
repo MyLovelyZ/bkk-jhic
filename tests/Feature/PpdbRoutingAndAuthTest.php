@@ -44,11 +44,11 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test dashboard returns 401 when token is missing.
+     * Test admin dashboard returns 401 when token is missing.
      */
     public function test_dashboard_returns_401_when_unauthenticated(): void
     {
-        $response = $this->getJson('/bkk/dashboard');
+        $response = $this->getJson('/bkk/admin');
 
         $response->assertStatus(401)
             ->assertJson([
@@ -58,7 +58,7 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test dashboard returns 401 when token is invalid.
+     * Test admin dashboard returns 401 when token is invalid.
      */
     public function test_dashboard_returns_401_when_token_is_invalid(): void
     {
@@ -70,7 +70,7 @@ class PpdbRoutingAndAuthTest extends TestCase
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer invalid_token')
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(401)
             ->assertJson([
@@ -80,7 +80,7 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test dashboard returns 403 when user account is inactive.
+     * Test admin dashboard returns 403 when user account is inactive.
      */
     public function test_dashboard_returns_403_when_account_is_inactive(): void
     {
@@ -98,7 +98,7 @@ class PpdbRoutingAndAuthTest extends TestCase
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer valid_token')
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(403)
             ->assertJson([
@@ -108,7 +108,7 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test dashboard returns 403 when user role is not authorized.
+     * Test admin dashboard returns 403 when user role is not authorized.
      */
     public function test_dashboard_returns_403_for_unauthorized_role(): void
     {
@@ -126,7 +126,7 @@ class PpdbRoutingAndAuthTest extends TestCase
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer token_siswa')
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(403)
             ->assertJson([
@@ -135,7 +135,7 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test dashboard succeeds for authorized role via Bearer Header.
+     * Test admin dashboard succeeds for authorized role via Bearer Header.
      */
     public function test_dashboard_accessible_with_valid_bearer_token(): void
     {
@@ -154,7 +154,7 @@ class PpdbRoutingAndAuthTest extends TestCase
         ]);
 
         $response = $this->withHeader('Authorization', 'Bearer valid_admin_token')
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -197,11 +197,11 @@ class PpdbRoutingAndAuthTest extends TestCase
         // Via Cookie
         $resCookie = $this->withCredentials()
             ->withUnencryptedCookie('access_token', 'cookie_token')
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
         $resCookie->assertStatus(200);
 
         // Via Request Query/Body
-        $resBody = $this->getJson('/bkk/dashboard?access_token=body_token');
+        $resBody = $this->getJson('/bkk/admin?access_token=body_token');
         $resBody->assertStatus(200);
     }
 }

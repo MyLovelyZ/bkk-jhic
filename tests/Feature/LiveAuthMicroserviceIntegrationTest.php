@@ -56,7 +56,7 @@ class LiveAuthMicroserviceIntegrationTest extends TestCase
 
         // 2. Akses dashboard via Authorization Bearer
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -71,7 +71,7 @@ class LiveAuthMicroserviceIntegrationTest extends TestCase
 
         // 3. Akses dashboard profile
         $resProfile = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/bkk/dashboard/profile');
+            ->getJson('/bkk/admin/profile');
 
         $resProfile->assertStatus(200)
             ->assertJson([
@@ -99,7 +99,7 @@ class LiveAuthMicroserviceIntegrationTest extends TestCase
         // Akses dashboard via cookie
         $response = $this->withCredentials()
             ->withUnencryptedCookie('access_token', $token)
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(200)
             ->assertJson([
@@ -128,7 +128,7 @@ class LiveAuthMicroserviceIntegrationTest extends TestCase
 
         // Akses dashboard dengan token SISWA -> Wajib 403 Forbidden
         $response = $this->withHeader('Authorization', 'Bearer ' . $token)
-            ->getJson('/bkk/dashboard');
+            ->getJson('/bkk/admin');
 
         $response->assertStatus(403)
             ->assertJson([
