@@ -31,17 +31,20 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $kategoriList = KategoriBerita::withCount('beritas')->get();
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'data' => [
                     'user' => $authUser,
                     'stats' => $stats,
+                    'kategori' => $kategoriList,
                 ],
             ]);
         }
 
-        return view('admin.pages.dashboard', compact('authUser', 'stats', 'recentBeritas'));
+        return view('admin.pages.dashboard', compact('authUser', 'stats', 'recentBeritas', 'kategoriList'));
     }
 
     /**
