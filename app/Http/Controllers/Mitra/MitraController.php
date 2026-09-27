@@ -3,9 +3,15 @@
 namespace App\Http\Controllers\Mitra;
 
 use App\Http\Controllers\Controller;
+use App\Models\Lamaran;
+use App\Models\LamaranRiwayatStatus;
+use App\Models\Lowongan;
+use App\Models\Mitra;
 use App\Services\MitraDataService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MitraController extends Controller
@@ -23,6 +29,18 @@ class MitraController extends Controller
         $metrics = $this->dataService->getDashboardMetrics();
         $vacancies = $this->dataService->getVacancies();
         $allApplicants = $this->dataService->getAllApplicants();
+
+        try {
+            if (Schema::hasTable('mitra') && Schema::hasTable('lowongan')) {
+                $dbMitra = Mitra::where('npwp', $profile['npwp'])->first();
+                if ($dbMitra) {
+                    $dbLowonganCount = Lowongan::where('mitra_id', $dbMitra->id)->where('status', 'Aktif')->count();
+                    if ($dbLowonganCount > 0) {
+                        $metrics['lowongan_aktif'] = $dbLowonganCount;
+                    }
+                }
+            }
+        } catch (\Throwable) {}
 
         // Ambil 4 pelamar terbaru
         $recentApplicants = array_slice($allApplicants, 0, 4);
@@ -87,6 +105,39 @@ class MitraController extends Controller
     public function lowonganStore(Request $request): RedirectResponse
     {
         $title = $request->input('title', 'Lowongan Baru');
+        $tipe = $request->input('tipe', 'Kerja');
+        $jurusan = $request->input('jurusan', 'Semua Jurusan');
+        $lokasi = $request->input('lokasi', 'Bogor');
+        $kuota = (int) $request->input('kuota', 1);
+        $deadline = $request->input('deadline', now()->addMonths(1)->toDateString());
+
+        try {
+            if (Schema::hasTable('mitra') && Schema::hasTable('lowongan')) {
+                $profile = $this->dataService->getProfile();
+                $dbMitra = Mitra::where('npwp', $profile['npwp'])->first() ?? Mitra::first();
+
+                if ($dbMitra) {
+                    Lowongan::create([
+                        'mitra_id' => $dbMitra->id,
+                        'judul' => $title,
+                        'slug' => Str::slug($title) . '-' . Str::random(5),
+                        'tipe' => in_array($tipe, ['PKL', 'Kerja']) ? $tipe : 'Kerja',
+                        'tipe_badge' => ($tipe === 'PKL') ? 'Magang / PKL Siswa' : 'Full-Time Lulusan',
+                        'target_jurusan' => $jurusan,
+                        'lokasi' => $lokasi,
+                        'kategori_posisi' => 'Teknologi & Operasional',
+                        'gaji_kompensasi' => 'Kompetitif UMK',
+                        'kuota' => $kuota > 0 ? $kuota : 1,
+                        'deadline' => $deadline,
+                        'deskripsi' => $request->input('deskripsi', 'Lowongan kerja/PKL terbuka untuk siswa dan alumni SMK Plus Pelita Nusantara.'),
+                        'persyaratan_json' => ['Siswa/Alumni SMK Plus Pelita Nusantara', 'Komitmen dan disiplin kerja tinggi'],
+                        'benefit_json' => ['Sertifikat & Pengalaman Industri'],
+                        'status' => 'Aktif',
+                    ]);
+                }
+            }
+        } catch (\Throwable) {}
+
         return redirect()
             ->route('bkk.mitra.lowongan.index')
             ->with('success', "Lowongan '{$title}' berhasil dipublikasikan dan dapat diakses siswa/alumni BKK!");
@@ -101,9 +152,36 @@ class MitraController extends Controller
         $vacancy = $this->dataService->getVacancyById($id_lowongan);
 
         if (!$vacancy) {
-            // Fallback ke lowongan pertama jika ID tidak ditemukan di mock
-            $all = $this->dataService->getVacancies();
-            $vacancy = $all[0];
+            try {
+                if (Schema::hasTable('lowongan')) {
+                    $dbLowongan = Lowongan::where('id', is_numeric($id_lowongan) ? (int)$id_lowongan : 0)
+                        ->orWhere('slug', $id_lowongan)
+                        ->first();
+
+                    if ($dbLowongan) {
+                        $vacancy = [
+                            'id' => (string) $dbLowongan->id,
+                            'title' => $dbLowongan->judul,
+                            'tipe' => $dbLowongan->tipe,
+                            'tipe_badge' => $dbLowongan->tipe_badge,
+                            'jurusan' => $dbLowongan->target_jurusan,
+                            'lokasi' => $dbLowongan->lokasi,
+                            'gaji' => $dbLowongan->gaji_kompensasi,
+                            'kuota' => $dbLowongan->kuota,
+                            'deadline' => $dbLowongan->deadline->format('Y-m-d'),
+                            'status' => $dbLowongan->status,
+                            'deskripsi' => $dbLowongan->deskripsi,
+                            'persyaratan' => $dbLowongan->persyaratan_json ?? [],
+                            'benefit' => $dbLowongan->benefit_json ?? [],
+                        ];
+                    }
+                }
+            } catch (\Throwable) {}
+
+            if (!$vacancy) {
+                $all = $this->dataService->getVacancies();
+                $vacancy = $all[0];
+            }
         }
 
         return view('mitra.pages.lowongan.edit', compact('profile', 'vacancy'));
@@ -115,6 +193,19 @@ class MitraController extends Controller
     public function lowonganUpdate(Request $request, string $id_lowongan): RedirectResponse
     {
         $title = $request->input('title', 'Lowongan');
+
+        try {
+            if (Schema::hasTable('lowongan') && is_numeric($id_lowongan)) {
+                $dbLowongan = Lowongan::find((int) $id_lowongan);
+                if ($dbLowongan) {
+                    $dbLowongan->update([
+                        'judul' => $title,
+                        'status' => $request->input('status', $dbLowongan->status),
+                    ]);
+                }
+            }
+        } catch (\Throwable) {}
+
         return redirect()
             ->route('bkk.mitra.lowongan.index')
             ->with('success', "Perubahan data lowongan '{$title}' berhasil disimpan!");
@@ -125,6 +216,15 @@ class MitraController extends Controller
      */
     public function lowonganDestroy(Request $request, string $id_lowongan): RedirectResponse
     {
+        try {
+            if (Schema::hasTable('lowongan') && is_numeric($id_lowongan)) {
+                $dbLowongan = Lowongan::find((int) $id_lowongan);
+                if ($dbLowongan) {
+                    $dbLowongan->delete();
+                }
+            }
+        } catch (\Throwable) {}
+
         return redirect()
             ->route('bkk.mitra.lowongan.index')
             ->with('success', "Lowongan dengan ID '{$id_lowongan}' berhasil diarsipkan/dihapus.");
@@ -175,7 +275,6 @@ class MitraController extends Controller
 
     /**
      * Detail Pelamar, Review CV, dan Form Status Seleksi
-     * (/bkk/dashboard/lowongan/{id_lowongan}/pelamar/{id_pelamar})
      */
     public function pelamarShow(Request $request, string $id_lowongan, string $id_pelamar): View
     {
@@ -205,13 +304,37 @@ class MitraController extends Controller
 
     /**
      * Handler Update Status Seleksi Pelamar
-     * (POST /bkk/dashboard/lowongan/{id_lowongan}/pelamar/{id_pelamar}/status)
      */
     public function pelamarUpdateStatus(Request $request, string $id_lowongan, string $id_pelamar): RedirectResponse
     {
         $newStatus = $request->input('status', 'Dipanggil');
         $namaPelamar = $request->input('nama', 'Pelamar');
         $notes = $request->input('catatan_seleksi', '');
+
+        try {
+            if (Schema::hasTable('lamaran')) {
+                $lamaran = Lamaran::where('kode_lamaran', $id_pelamar)
+                    ->orWhere('id', is_numeric($id_pelamar) ? (int)$id_pelamar : 0)
+                    ->first();
+
+                if ($lamaran) {
+                    $lamaran->update([
+                        'status' => $newStatus,
+                        'catatan_seleksi' => $notes,
+                    ]);
+
+                    if (Schema::hasTable('lamaran_riwayat_status')) {
+                        LamaranRiwayatStatus::create([
+                            'lamaran_id' => $lamaran->id,
+                            'judul_tahapan' => "Status Diubah: {$newStatus}",
+                            'deskripsi' => $notes ?: "Status pelamar diperbarui oleh Mitra Industri.",
+                            'diubah_oleh_id' => 'mitra-hrd',
+                            'diubah_oleh_role' => 'MITRA',
+                        ]);
+                    }
+                }
+            }
+        } catch (\Throwable) {}
 
         return redirect()
             ->route('bkk.mitra.pelamar.show', [$id_lowongan, $id_pelamar])

@@ -1,0 +1,50 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Lowongan extends Model
+{
+    use HasFactory;
+
+    protected $table = 'lowongan';
+    protected $guarded = [];
+
+    protected $casts = [
+        'persyaratan_json' => 'array',
+        'benefit_json' => 'array',
+        'deadline' => 'date',
+        'kuota' => 'integer',
+        'views_count' => 'integer',
+    ];
+
+    public function scopeAktif(Builder $query): Builder
+    {
+        return $query->where('status', 'Aktif');
+    }
+
+    public function scopeTipe(Builder $query, string $tipe): Builder
+    {
+        return $query->where('tipe', $tipe);
+    }
+
+    public function mitra(): BelongsTo
+    {
+        return $this->belongsTo(Mitra::class, 'mitra_id');
+    }
+
+    public function lamarans(): HasMany
+    {
+        return $this->hasMany(Lamaran::class, 'lowongan_id');
+    }
+
+    public function penempatanPkl(): HasMany
+    {
+        return $this->hasMany(PenempatanPkl::class, 'lowongan_id');
+    }
+}

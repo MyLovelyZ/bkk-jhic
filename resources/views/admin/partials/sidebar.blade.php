@@ -58,45 +58,41 @@
                 <span class="h-px flex-1 bg-line"></span>
             </div>
 
-            <div class="flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium text-muted/70 hover:bg-navy/5 cursor-not-allowed select-none transition-colors" title="Segera Hadir">
+            <a href="{{ route('bkk.admin.tracer.index') }}"
+               class="group flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium transition-colors {{ request()->routeIs('*tracer*') ? 'bg-navy text-white shadow-sm' : 'text-navy hover:bg-navy/5' }}">
                 <div class="flex items-center gap-3 truncate">
-                    <i data-lucide="graduation-cap" class="w-4 h-4 shrink-0 text-muted/60"></i>
+                    <i data-lucide="graduation-cap" class="w-4 h-4 shrink-0 {{ request()->routeIs('*tracer*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Tracer Study</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-line/60 text-muted font-semibold shrink-0">Sitemap</span>
-            </div>
+                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*tracer*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
+            </a>
 
-            <div class="flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium text-muted/70 hover:bg-navy/5 cursor-not-allowed select-none transition-colors" title="Segera Hadir">
+            <a href="{{ route('bkk.admin.mitra.index') }}"
+               class="group flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium transition-colors {{ request()->routeIs('*admin.mitra*') ? 'bg-navy text-white shadow-sm' : 'text-navy hover:bg-navy/5' }}">
                 <div class="flex items-center gap-3 truncate">
-                    <i data-lucide="building-2" class="w-4 h-4 shrink-0 text-muted/60"></i>
+                    <i data-lucide="building-2" class="w-4 h-4 shrink-0 {{ request()->routeIs('*admin.mitra*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Mitra IDUKA</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-line/60 text-muted font-semibold shrink-0">Sitemap</span>
-            </div>
+                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*admin.mitra*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
+            </a>
 
-            <div class="flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium text-muted/70 hover:bg-navy/5 cursor-not-allowed select-none transition-colors" title="Segera Hadir">
+            <a href="{{ route('bkk.admin.lowongan.index') }}"
+               class="group flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium transition-colors {{ request()->routeIs('*admin.lowongan*') ? 'bg-navy text-white shadow-sm' : 'text-navy hover:bg-navy/5' }}">
                 <div class="flex items-center gap-3 truncate">
-                    <i data-lucide="briefcase" class="w-4 h-4 shrink-0 text-muted/60"></i>
+                    <i data-lucide="briefcase" class="w-4 h-4 shrink-0 {{ request()->routeIs('*admin.lowongan*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Lowongan Kerja</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-line/60 text-muted font-semibold shrink-0">Sitemap</span>
-            </div>
+                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*admin.lowongan*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
+            </a>
 
-            <div class="flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium text-muted/70 hover:bg-navy/5 cursor-not-allowed select-none transition-colors" title="Segera Hadir">
+            <a href="{{ route('bkk.admin.pkl.monitoring') }}"
+               class="group flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium transition-colors {{ request()->routeIs('*admin.pkl*') ? 'bg-navy text-white shadow-sm' : 'text-navy hover:bg-navy/5' }}">
                 <div class="flex items-center gap-3 truncate">
-                    <i data-lucide="activity" class="w-4 h-4 shrink-0 text-muted/60"></i>
+                    <i data-lucide="activity" class="w-4 h-4 shrink-0 {{ request()->routeIs('*admin.pkl*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Monitoring PKL</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-line/60 text-muted font-semibold shrink-0">Sitemap</span>
-            </div>
-
-            <div class="flex items-center justify-between h-10 px-4 rounded-full text-xs font-medium text-muted/70 hover:bg-navy/5 cursor-not-allowed select-none transition-colors" title="Segera Hadir">
-                <div class="flex items-center gap-3 truncate">
-                    <i data-lucide="clipboard-check" class="w-4 h-4 shrink-0 text-muted/60"></i>
-                    <span class="truncate">Review Laporan</span>
-                </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-line/60 text-muted font-semibold shrink-0">Sitemap</span>
-            </div>
+                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*admin.pkl*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
+            </a>
         </nav>
 
         <!-- Integrasi Portal & Publik -->

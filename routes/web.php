@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminBeritaController;
+use App\Http\Controllers\Admin\AdminLowonganController;
+use App\Http\Controllers\Admin\AdminMitraController;
+use App\Http\Controllers\Admin\AdminPklController;
+use App\Http\Controllers\Admin\AdminTracerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Me\MeController;
 use App\Http\Controllers\Mitra\MitraController;
@@ -33,6 +37,7 @@ Route::prefix('bkk')->group(function () {
     Route::get('/lowongan/{id_lowongan}', [PublicController::class, 'lowonganDetail'])->name('bkk.lowongan.detail');
     Route::get('/tentang', [PublicController::class, 'tentang'])->name('bkk.tentang');
     Route::get('/kerja-sama', [PublicController::class, 'kerjasama'])->name('bkk.kerjasama');
+    Route::post('/kerja-sama', [PublicController::class, 'storeKerjasama'])->name('bkk.kerjasama.store');
 
     // 2. Router Group Terproteksi Admin Sekolah: /bkk/admin/*
     Route::middleware('verify.auth:ADMIN,KEPALA_SEKOLAH,TU,DEVELOPER')->prefix('admin')->group(function () {
@@ -46,6 +51,25 @@ Route::prefix('bkk')->group(function () {
         Route::get('/berita/{id_berita}', [AdminBeritaController::class, 'edit'])->name('bkk.admin.berita.edit');
         Route::put('/berita/{id_berita}', [AdminBeritaController::class, 'update'])->name('bkk.admin.berita.update');
         Route::delete('/berita/{id_berita}', [AdminBeritaController::class, 'destroy'])->name('bkk.admin.berita.destroy');
+
+        // Modul Lowongan Admin (Moderasi)
+        Route::get('/lowongan', [AdminLowonganController::class, 'index'])->name('bkk.admin.lowongan.index');
+        Route::post('/lowongan/{id}/status', [AdminLowonganController::class, 'updateStatus'])->name('bkk.admin.lowongan.updateStatus');
+
+        // Modul Mitra IDUKA Admin
+        Route::get('/mitra', [AdminMitraController::class, 'index'])->name('bkk.admin.mitra.index');
+        Route::post('/mitra/{id}/verify', [AdminMitraController::class, 'toggleVerify'])->name('bkk.admin.mitra.verify');
+        Route::get('/mitra/permohonan', [AdminMitraController::class, 'permohonanIndex'])->name('bkk.admin.mitra.permohonan.index');
+        Route::post('/mitra/permohonan/{id}', [AdminMitraController::class, 'permohonanUpdateStatus'])->name('bkk.admin.mitra.permohonan.updateStatus');
+
+        // Modul Monitoring PKL & Review Laporan
+        Route::get('/pkl/monitoring', [AdminPklController::class, 'monitoring'])->name('bkk.admin.pkl.monitoring');
+        Route::post('/pkl/jurnal/{id}/validate', [AdminPklController::class, 'validateJurnal'])->name('bkk.admin.pkl.validateJurnal');
+        Route::post('/pkl/laporan/{id}/validate', [AdminPklController::class, 'validateLaporan'])->name('bkk.admin.pkl.validateLaporan');
+
+        // Modul Tracer Study
+        Route::get('/tracer-study', [AdminTracerController::class, 'index'])->name('bkk.admin.tracer.index');
+        Route::post('/tracer-study/kuesioner', [AdminTracerController::class, 'kuesionerStore'])->name('bkk.admin.tracer.kuesioner.store');
     });
 
     // 3. Router Group Terproteksi Khusus Siswa & Alumni: /bkk/me/*
@@ -53,9 +77,13 @@ Route::prefix('bkk')->group(function () {
         Route::get('/', [MeController::class, 'dashboard'])->name('index');
         Route::get('/lamaran', [MeController::class, 'lamaran'])->name('lamaran');
         Route::get('/cv', [MeController::class, 'cv'])->name('cv');
+        Route::post('/cv', [MeController::class, 'cvUpdate'])->name('cv.update');
         Route::get('/cv/edit', [MeController::class, 'cvEdit'])->name('cv.edit');
         Route::get('/jurnal', [MeController::class, 'jurnal'])->name('jurnal');
+        Route::post('/jurnal', [MeController::class, 'storeJurnal'])->name('jurnal.store');
         Route::get('/laporan', [MeController::class, 'laporan'])->name('laporan');
+        Route::post('/laporan', [MeController::class, 'storeLaporan'])->name('laporan.store');
+        Route::post('/daftar/{id_lowongan}', [MeController::class, 'storeLamaran'])->name('daftar');
     });
 
     // 4. Router Group Khusus Mitra (IDUKA): /bkk/dashboard/* (Bypass VerifyMiddleware / Auth NPWP & Password)
