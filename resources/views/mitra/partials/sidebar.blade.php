@@ -18,6 +18,12 @@
             'icon' => 'plus-circle',
             'active' => request()->routeIs('bkk.mitra.lowongan.create'),
         ],
+        [
+            'label' => 'Pengaturan Akun',
+            'route' => route('bkk.mitra.pengaturan'),
+            'icon' => 'settings',
+            'active' => request()->routeIs('bkk.mitra.pengaturan'),
+        ],
     ];
 @endphp
 
@@ -77,6 +83,13 @@
         </div>
     </div>
 
+    @php
+        $activeMitra = $currentMitra ?? $mitra ?? null;
+        $sideNama = $activeMitra ? $activeMitra->nama_perusahaan : ($profile['nama_perusahaan'] ?? 'PT Mitra Industri');
+        $sideStatus = $activeMitra ? $activeMitra->status_kemitraan : ($profile['status_kemitraan'] ?? 'MoU IDUKA Terverifikasi');
+        $sidePic = $activeMitra ? $activeMitra->pic_name : ($profile['pic_name'] ?? 'HR Lead');
+    @endphp
+
     <!-- Bottom IDUKA Card & Partnership Status -->
     <div class="p-4 border-t border-line bg-canvas/60">
         <div class="p-3.5 rounded-2xl bg-white border border-line shadow-xs">
@@ -84,15 +97,15 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 <span class="text-[11px] font-bold text-navy uppercase tracking-wide">Status Kemitraan</span>
             </div>
-            <div class="text-xs font-semibold text-navy truncate">
-                {{ $profile['nama_perusahaan'] ?? 'PT Mitra Industri' }}
+            <div class="text-xs font-semibold text-navy truncate" title="{{ $sideNama }}">
+                {{ $sideNama }}
             </div>
             <div class="text-[11px] text-muted mt-1 leading-snug">
-                {{ $profile['status_kemitraan'] ?? 'MoU IDUKA Terverifikasi' }}
+                {{ $sideStatus }}
             </div>
             <div class="mt-3 pt-2.5 border-t border-line flex items-center justify-between text-[11px] text-muted">
-                <span>PIC: {{ $profile['pic_name'] ?? 'HR Lead' }}</span>
-                <span class="text-maroon font-semibold">Aktif</span>
+                <span class="truncate max-w-[130px]" title="PIC: {{ $sidePic }}">PIC: {{ $sidePic }}</span>
+                <span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-semibold text-[10px]">Aktif</span>
             </div>
         </div>
     </div>

@@ -197,7 +197,7 @@
                 </div>
 
                 <div class="pt-3 border-t border-line">
-                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $applicant['no_hp']) }}?text=Halo%20{{ urlencode($applicant['nama']) }},%20kami%20dari%20tim%20HRD%20PT%20Solusi%20Teknologi%20Nusantara%20(Mitra%20BKK%20SMK%20Penus)." target="_blank" class="w-full py-2 rounded-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition-colors flex items-center justify-center gap-2">
+                    <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $applicant['no_hp']) }}?text=Halo%20{{ urlencode($applicant['nama']) }},%20kami%20dari%20tim%20HRD%20{{ urlencode($mitra->nama_perusahaan) }}%20(Mitra%20BKK%20SMK%20Penus)." target="_blank" class="w-full py-2 rounded-full border border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold transition-colors flex items-center justify-center gap-2">
                         <i data-lucide="message-circle" class="w-4 h-4"></i>
                         <span>Hubungi via WhatsApp</span>
                     </a>

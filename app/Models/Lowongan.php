@@ -23,6 +23,26 @@ class Lowongan extends Model
         'views_count' => 'integer',
     ];
 
+    public function getTitleAttribute(): ?string
+    {
+        return $this->judul;
+    }
+
+    public function getJurusanAttribute(): ?string
+    {
+        return $this->target_jurusan;
+    }
+
+    public function getGajiAttribute(): ?string
+    {
+        return $this->gaji_kompensasi;
+    }
+
+    public function getPelamarCountAttribute(): int
+    {
+        return $this->lamarans()->count();
+    }
+
     public function scopeAktif(Builder $query): Builder
     {
         return $query->where('status', 'Aktif');
@@ -39,6 +59,11 @@ class Lowongan extends Model
     }
 
     public function lamarans(): HasMany
+    {
+        return $this->hasMany(Lamaran::class, 'lowongan_id');
+    }
+
+    public function lamaran(): HasMany
     {
         return $this->hasMany(Lamaran::class, 'lowongan_id');
     }

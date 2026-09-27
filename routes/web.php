@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\AdminPklController;
 use App\Http\Controllers\Admin\AdminTracerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Me\MeController;
+use App\Http\Controllers\Mitra\MitraAuthController;
 use App\Http\Controllers\Mitra\MitraController;
 use App\Http\Controllers\PublicController;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,11 @@ Route::prefix('bkk')->group(function () {
 
         // Modul Mitra IDUKA Admin
         Route::get('/mitra', [AdminMitraController::class, 'index'])->name('bkk.admin.mitra.index');
+        Route::get('/mitra/new', [AdminMitraController::class, 'create'])->name('bkk.admin.mitra.create');
+        Route::post('/mitra', [AdminMitraController::class, 'store'])->name('bkk.admin.mitra.store');
+        Route::get('/mitra/{id}', [AdminMitraController::class, 'edit'])->name('bkk.admin.mitra.edit');
+        Route::put('/mitra/{id}', [AdminMitraController::class, 'update'])->name('bkk.admin.mitra.update');
+        Route::delete('/mitra/{id}', [AdminMitraController::class, 'destroy'])->name('bkk.admin.mitra.destroy');
         Route::post('/mitra/{id}/verify', [AdminMitraController::class, 'toggleVerify'])->name('bkk.admin.mitra.verify');
         Route::get('/mitra/permohonan', [AdminMitraController::class, 'permohonanIndex'])->name('bkk.admin.mitra.permohonan.index');
         Route::post('/mitra/permohonan/{id}', [AdminMitraController::class, 'permohonanUpdateStatus'])->name('bkk.admin.mitra.permohonan.updateStatus');
@@ -86,9 +92,20 @@ Route::prefix('bkk')->group(function () {
         Route::post('/daftar/{id_lowongan}', [MeController::class, 'storeLamaran'])->name('daftar');
     });
 
-    // 4. Router Group Khusus Mitra (IDUKA): /bkk/dashboard/* (Bypass VerifyMiddleware / Auth NPWP & Password)
-    Route::prefix('dashboard')->name('bkk.mitra.')->group(function () {
+    // 4. Autentikasi Publik Mitra: /bkk/dashboard/login
+    Route::get('/dashboard/login', [MitraAuthController::class, 'showLogin'])->name('bkk.mitra.login');
+    Route::post('/dashboard/login', [MitraAuthController::class, 'login'])->name('bkk.mitra.login.post');
+
+    // 5. Router Group Khusus Mitra (IDUKA): /bkk/dashboard/* (Terproteksi Middleware mitra.auth)
+    Route::middleware('mitra.auth')->prefix('dashboard')->name('bkk.mitra.')->group(function () {
+        Route::post('/logout', [MitraAuthController::class, 'logout'])->name('logout');
         Route::get('/', [MitraController::class, 'dashboard'])->name('dashboard');
+
+        // Pengaturan Akun & Profil Mitra
+        Route::get('/pengaturan', [MitraAuthController::class, 'pengaturan'])->name('pengaturan');
+        Route::post('/pengaturan/password', [MitraAuthController::class, 'updatePassword'])->name('pengaturan.password');
+        Route::post('/pengaturan/logo', [MitraAuthController::class, 'updateLogo'])->name('pengaturan.logo');
+        Route::post('/pengaturan/profil', [MitraAuthController::class, 'updateProfil'])->name('pengaturan.profil');
 
         // Modul Lowongan Mitra
         Route::get('/lowongan', [MitraController::class, 'lowonganIndex'])->name('lowongan.index');

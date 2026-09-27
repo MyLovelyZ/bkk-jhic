@@ -55,14 +55,13 @@ class DashboardDataFetchingTest extends TestCase
             ->get('/bkk/admin');
 
         $response->assertStatus(200);
-        $response->assertSee('Dashboard Admin BKK');
-        $response->assertSee('Ekosistem Operasional BKK');
+        $response->assertSee('Pusat Kendali Admin');
+        $response->assertSee('Publikasi Berita Terkini');
         $response->assertSee('Mitra IDUKA');
-        $response->assertSee('Lowongan Bursa Kerja');
-        $response->assertSee('Monitoring PKL');
-        $response->assertSee('Tracer Study');
-        $response->assertSee('Lowongan Bursa Kerja Terkini');
-        $response->assertSee('Mitra IDUKA Rekanan');
+        $response->assertSee('Lowongan Kerja BKK');
+        $response->assertSee('Monitoring PKL Siswa');
+        $response->assertSee('Tracer Study Alumni');
+        $response->assertSee('Profil Administrator');
 
         // Test JSON endpoint
         $jsonResponse = $this->withHeader('Authorization', 'Bearer valid_token')
@@ -101,13 +100,16 @@ class DashboardDataFetchingTest extends TestCase
      */
     public function test_mitra_dashboard_fetches_and_renders_live_database_data(): void
     {
-        $response = $this->get('/bkk/dashboard');
+        $mitra = Mitra::first();
+
+        $response = $this->withSession(['mitra_id' => $mitra->id])
+            ->get('/bkk/dashboard');
 
         $response->assertStatus(200);
-        $response->assertSee('Dashboard Mitra IDUKA');
-        $response->assertSee('PT Solusi Teknologi Nusantara');
-        $response->assertSee('Lowongan Ditawarkan');
-        $response->assertSee('Pelamar Terbaru');
+        $response->assertSee('Portal Resmi Rekrutmen Mitra IDUKA');
+        $response->assertSee($mitra->nama_perusahaan);
+        $response->assertSee('Lowongan Aktif');
+        $response->assertSee('Total Pelamar');
         $response->assertSee('Review CV');
     }
 

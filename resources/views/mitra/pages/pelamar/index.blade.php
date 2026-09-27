@@ -163,6 +163,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if(method_exists($applicants, 'links'))
+            <div class="p-4 border-t border-line">
+                {{ $applicants->links() }}
+            </div>
+        @endif
     </div>
 </div>
 @endsection

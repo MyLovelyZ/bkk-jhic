@@ -13,10 +13,12 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: [
             'access_token',
+            'mitra_token',
         ]);
 
         $middleware->alias([
             'verify.auth' => \App\Http\Middleware\VerifyAuthToken::class,
+            'mitra.auth'  => \App\Http\Middleware\EnsureMitraAuthenticated::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
