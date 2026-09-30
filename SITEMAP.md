@@ -30,18 +30,18 @@
 * /bkk/dashboard/lowongan/{id_lowongan}/pelamar/{id_pelamar} -> Detail pelamar, update status seleksi (Dipanggil, Interview, Diterima, Ditolak).
 
 ## Authenticated (ADMIN_BKK)
-* /bkk/admin -> Dashboard Admin BKK
-* /bkk/admin/tracer-study -> Rekap data keterserapan alumni dan agregasi statistik.
+* /bkk/admin -> Dashboard Admin BKK ✅
+* /bkk/admin/tracer-study -> Rekap data keterserapan alumni dan agregasi statistik. ✅
 * /bkk/admin/mitra -> List daftar Mitra ✅
 * /bkk/admin/mitra/new -> Bikin mitra baru. Input Nama Perusahaan (Sanitize) & Password ✅
 * /bkk/admin/mitra/{id_mitra} -> Edit informasi Mitra, Hapus, DLL ✅
-* /bkk/admin/lowongan -> Daftar Lowongan yang ditawarkan oleh Mitra
-* /bkk/admin/lowongan/{id_lowongan} -> Edit informasi lowongan, Hapus, DLL
-* /bkk/admin/lowongan/{id_lowongan}/siswa -> Siswa yang terdaftar PKL
-* /bkk/admin/pkl/monitoring -> Pantauan seluruh siswa yang sedang aktif PKL, lokasi mitra, dan guru pembimbingnya.
-* /bkk/admin/pkl/laporan-review -> Review dan validasi jurnal harian serta draf laporan akhir siswa.
-* /bkk/admin/berita/new -> Buat Berita Baru
-* /bkk/admin/berita/{id_berita} -> Edit informasi berita, Hapus, DLL
+* /bkk/admin/lowongan -> Daftar Lowongan yang ditawarkan oleh Mitra ✅
+* /bkk/admin/lowongan/{id_lowongan} -> Edit informasi lowongan, Hapus, DLL ✅
+* /bkk/admin/lowongan/{id_lowongan}/siswa -> Siswa yang terdaftar PKL ✅
+* /bkk/admin/pkl/monitoring -> Pantauan seluruh siswa yang sedang aktif PKL, lokasi mitra, dan guru pembimbingnya. ✅
+* /bkk/admin/pkl/laporan-review -> Review dan validasi jurnal harian serta draf laporan akhir siswa. ✅
+* /bkk/admin/berita/new -> Buat Berita Baru ✅
+* /bkk/admin/berita/{id_berita} -> Edit informasi berita, Hapus, DLL ✅
 
 Dari sitemap di atas. Aku pengen bikin dashboard untuk Authenticated Siswa & Alumni.
 

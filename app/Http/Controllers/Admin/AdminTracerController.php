@@ -45,17 +45,22 @@ class AdminTracerController extends Controller
             'rata_rata_waktu_tunggu_bulan' => round($avgWaktuTunggu, 1),
         ];
 
+        $recentResponses = TracerRespon::with(['profilSiswa', 'kuesioner'])
+            ->latest('tanggal_pengisian')
+            ->paginate(10);
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'kuesioner' => $kuesioners,
                 'stats' => $stats,
+                'recent_responses' => $recentResponses,
             ]);
         }
 
         $authUser = $request->auth_user ?? $request->input('auth_user') ?? [];
 
-        return view('admin.pages.dashboard', compact('authUser', 'kuesioners', 'stats'));
+        return view('admin.pages.tracer.index', compact('authUser', 'kuesioners', 'stats', 'recentResponses'));
     }
 
     /**
@@ -90,6 +95,6 @@ class AdminTracerController extends Controller
             ], 201);
         }
 
-        return back()->with('success', 'Instrumen kuesioner tracer study berhasil diterbitkan.');
+        return back()->with('success', "Instrumen kuesioner tracer study '{$kuesioner->judul}' berhasil diterbitkan.");
     }
 }
