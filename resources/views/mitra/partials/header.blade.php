@@ -5,19 +5,9 @@
             <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
 
-        <a href="{{ route('bkk.mitra.dashboard') }}" class="flex items-center gap-2.5 shrink-0 group">
-            <div class="w-9 h-9 rounded-xl bg-navy text-white flex items-center justify-center font-bold text-sm shadow-sm group-hover:bg-maroon transition-colors">
-                BKK
-            </div>
-            <div class="hidden sm:block leading-tight">
-                <div class="flex items-center gap-1.5">
-                    <span class="font-headline font-bold text-navy text-sm">PORTAL MITRA IDUKA</span>
-                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        <i data-lucide="shield-check" class="w-3 h-3 mr-0.5"></i> Terverifikasi
-                    </span>
-                </div>
-                <div class="text-[11px] text-muted font-normal">SMK Plus Pelita Nusantara</div>
-            </div>
+        <!-- Brandmark Logo / Image Placeholder -->
+        <a href="{{ route('bkk.mitra.dashboard') }}" class="flex items-center hover:opacity-90 transition-opacity" title="Portal Mitra IDUKA">
+            <img src="{{ asset('images/logo-penus.png') }}" alt="Logo" class="h-9 w-auto max-h-9 object-contain rounded-lg" />
         </a>
     </div>
 

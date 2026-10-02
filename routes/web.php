@@ -53,9 +53,13 @@ Route::prefix('bkk')->group(function () {
         Route::put('/berita/{id_berita}', [AdminBeritaController::class, 'update'])->name('bkk.admin.berita.update');
         Route::delete('/berita/{id_berita}', [AdminBeritaController::class, 'destroy'])->name('bkk.admin.berita.destroy');
 
-        // Modul Lowongan Admin (Moderasi)
+        // Modul Lowongan Admin (Moderasi & Detail)
         Route::get('/lowongan', [AdminLowonganController::class, 'index'])->name('bkk.admin.lowongan.index');
+        Route::get('/lowongan/{id}', [AdminLowonganController::class, 'edit'])->name('bkk.admin.lowongan.edit');
+        Route::put('/lowongan/{id}', [AdminLowonganController::class, 'update'])->name('bkk.admin.lowongan.update');
+        Route::delete('/lowongan/{id}', [AdminLowonganController::class, 'destroy'])->name('bkk.admin.lowongan.destroy');
         Route::post('/lowongan/{id}/status', [AdminLowonganController::class, 'updateStatus'])->name('bkk.admin.lowongan.updateStatus');
+        Route::get('/lowongan/{id}/siswa', [AdminLowonganController::class, 'siswa'])->name('bkk.admin.lowongan.siswa');
 
         // Modul Mitra IDUKA Admin
         Route::get('/mitra', [AdminMitraController::class, 'index'])->name('bkk.admin.mitra.index');
@@ -70,6 +74,7 @@ Route::prefix('bkk')->group(function () {
 
         // Modul Monitoring PKL & Review Laporan
         Route::get('/pkl/monitoring', [AdminPklController::class, 'monitoring'])->name('bkk.admin.pkl.monitoring');
+        Route::get('/pkl/laporan-review', [AdminPklController::class, 'laporanReview'])->name('bkk.admin.pkl.review');
         Route::post('/pkl/jurnal/{id}/validate', [AdminPklController::class, 'validateJurnal'])->name('bkk.admin.pkl.validateJurnal');
         Route::post('/pkl/laporan/{id}/validate', [AdminPklController::class, 'validateLaporan'])->name('bkk.admin.pkl.validateLaporan');
 

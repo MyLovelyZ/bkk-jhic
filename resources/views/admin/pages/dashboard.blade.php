@@ -20,6 +20,13 @@
 
     $hour = (int) date('H');
     $greet = ($hour < 11) ? 'Selamat pagi' : (($hour < 15) ? 'Selamat siang' : (($hour < 18) ? 'Selamat sore' : 'Selamat malam'));
+
+    $recentBeritas = $recentBeritas ?? collect();
+    $kategoriList = $kategoriList ?? collect();
+    $recentLowongans = $recentLowongans ?? collect();
+    $recentMitras = $recentMitras ?? collect();
+    $recentPkl = $recentPkl ?? collect();
+    $recentTracer = $recentTracer ?? collect();
 @endphp
 
 @section('content')

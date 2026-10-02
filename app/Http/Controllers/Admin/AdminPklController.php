@@ -20,12 +20,35 @@ class AdminPklController extends Controller
     {
         $query = PenempatanPkl::with(['siswa', 'mitra', 'lowongan']);
 
+        $search = $request->input('q');
+        if (!empty($search)) {
+            $like = config('database.default') === 'pgsql' ? 'ilike' : 'like';
+            $query->where(function ($q) use ($search, $like) {
+                $q->where('pembimbing_industri_nama', $like, "%{$search}%")
+                  ->orWhere('unit_kerja_divisi', $like, "%{$search}%")
+                  ->orWhereHas('siswa', fn ($s) => $s->where('nis', $like, "%{$search}%")->orWhere('jurusan', $like, "%{$search}%"))
+                  ->orWhereHas('mitra', fn ($m) => $m->where('nama_perusahaan', $like, "%{$search}%"));
+            });
+        }
+
         $status = $request->input('status');
         if (!empty($status) && $status !== 'Semua') {
             $query->where('status', $status);
         }
 
-        $penempatan = $query->latest('created_at')->paginate(10)->withQueryString();
+        $penempatan = $query->latest('created_at')->paginate(10, ['*'], 'penempatan_page')->withQueryString();
+
+        // Antrean Jurnal Harian yang Menunggu Validasi
+        $jurnalsPending = PklJurnalHarian::with(['penempatan.mitra', 'penempatan.siswa'])
+            ->where('status', 'Menunggu')
+            ->latest('tanggal')
+            ->paginate(10, ['*'], 'jurnal_page');
+
+        // Antrean Naskah Laporan Akhir yang Ditinjau
+        $laporansPending = PklLaporanAkhir::with(['penempatan.mitra', 'penempatan.siswa'])
+            ->where('status', 'Ditinjau')
+            ->latest('updated_at')
+            ->paginate(10, ['*'], 'laporan_page');
 
         $stats = [
             'total_penempatan' => PenempatanPkl::count(),
@@ -35,17 +58,41 @@ class AdminPklController extends Controller
             'laporan_ditinjau' => PklLaporanAkhir::where('status', 'Ditinjau')->count(),
         ];
 
+        $activeTab = $request->input('tab', 'penempatan');
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'stats' => $stats,
-                'data' => $penempatan,
+                'data' => [
+                    'penempatan' => $penempatan,
+                    'jurnals_pending' => $jurnalsPending,
+                    'laporans_pending' => $laporansPending,
+                ],
             ]);
         }
 
         $authUser = $request->auth_user ?? $request->input('auth_user') ?? [];
 
-        return view('admin.pages.dashboard', compact('authUser', 'penempatan', 'stats'));
+        return view('admin.pages.pkl.monitoring', compact(
+            'authUser',
+            'penempatan',
+            'jurnalsPending',
+            'laporansPending',
+            'stats',
+            'activeTab',
+            'status',
+            'search'
+        ));
+    }
+
+    /**
+     * Alias Rute Review dan Validasi Laporan & Jurnal PKL (/bkk/admin/pkl/laporan-review)
+     */
+    public function laporanReview(Request $request): View|JsonResponse
+    {
+        $request->merge(['tab' => $request->input('tab', 'jurnal')]);
+        return $this->monitoring($request);
     }
 
     /**
@@ -64,6 +111,15 @@ class AdminPklController extends Controller
             'divalidasi_pada' => now(),
         ]);
 
+        // Jika disetujui, tambahkan akumulasi total jam tercapai pada penempatan PKL
+        if ($status === 'Disetujui' && $jurnal->penempatan) {
+            $penempatan = $jurnal->penempatan;
+            $totalDisetujui = PklJurnalHarian::where('penempatan_pkl_id', $penempatan->id)
+                ->where('status', 'Disetujui')
+                ->sum('durasi_jam');
+            $penempatan->update(['total_jam_tercapai' => $totalDisetujui]);
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
@@ -72,7 +128,7 @@ class AdminPklController extends Controller
             ]);
         }
 
-        return back()->with('success', "Jurnal berhasil divalidasi.");
+        return back()->with('success', "Log jurnal harian tanggal {$jurnal->tanggal->format('d M Y')} berhasil divalidasi ({$status}).");
     }
 
     /**
@@ -88,16 +144,17 @@ class AdminPklController extends Controller
             'status' => $status,
             'catatan_pembimbing' => $catatan,
             'divalidasi_oleh' => $request->auth_user['id'] ?? 'adm-bkk-001',
+            'terakhir_diperbarui' => now(),
         ]);
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => "Bab laporan PKL berhasil diperbarui statusnya ({$status}).",
+                'message' => "Bab {$laporan->nomor_bab} laporan PKL berhasil diperbarui statusnya ({$status}).",
                 'data' => $laporan,
             ]);
         }
 
-        return back()->with('success', "Laporan berhasil diperbarui.");
+        return back()->with('success', "Naskah Bab {$laporan->nomor_bab} berhasil divalidasi dengan status {$status}.");
     }
 }

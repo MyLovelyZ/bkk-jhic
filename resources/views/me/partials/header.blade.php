@@ -12,16 +12,9 @@
         <i data-lucide="menu" class="w-5 h-5"></i>
     </button>
 
-    <!-- Brandmark Logo -->
-    <a href="{{ route('bkk.me.index') }}" class="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
-        <div class="w-9 h-9 rounded-xl bg-navy grid place-items-center relative overflow-hidden shadow-sm">
-            <i data-lucide="graduation-cap" class="w-5 h-5 text-white"></i>
-            <span class="absolute bottom-0 right-0 w-3 h-3 bg-maroon rounded-tl-md"></span>
-        </div>
-        <div class="leading-tight hidden sm:block">
-            <div class="text-[15px] font-semibold text-navy">BKK <span class="text-maroon">Penus</span></div>
-            <div class="text-[11px] text-muted">Bursa Kerja Khusus</div>
-        </div>
+    <!-- Brandmark Logo / Image Placeholder -->
+    <a href="{{ route('bkk.me.index') }}" class="flex items-center hover:opacity-90 transition-opacity" title="Portal Siswa & Alumni">
+        <img src="{{ asset('images/logo-penus.png') }}" alt="Logo" class="h-9 w-auto max-h-9 object-contain rounded-lg" />
     </a>
 
     <!-- Center Search Bar -->
