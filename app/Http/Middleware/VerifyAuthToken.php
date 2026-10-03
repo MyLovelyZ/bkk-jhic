@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class VerifyAuthToken
@@ -41,9 +42,10 @@ class VerifyAuthToken
                     'access_token' => $token,
                 ]);
         } catch (\Throwable $e) {
+            Log::error('Auth service connection failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Layanan otentikasi tidak dapat dihubungi: ' . $e->getMessage(),
+                'message' => 'Layanan otentikasi sedang tidak tersedia. Silakan coba beberapa saat lagi.',
             ], Response::HTTP_SERVICE_UNAVAILABLE);
         }
 
@@ -101,7 +103,6 @@ class VerifyAuthToken
      * Ekstraksi access_token dari:
      * - Authorization Bearer: Authorization: Bearer <token>
      * - Request Cookie: access_token
-     * - Fallback Request Body / Query: access_token
      */
     protected function extractToken(Request $request): ?string
     {
@@ -123,12 +124,6 @@ class VerifyAuthToken
             if (preg_match('/(?:^|;\s*)access_token=([^;]+)/', $rawCookie, $matches)) {
                 return trim(urldecode($matches[1]));
             }
-        }
-
-        // 3. Fallback Request Body / Input parameter: access_token
-        $inputToken = $request->input('access_token');
-        if (!empty($inputToken) && is_string($inputToken)) {
-            return trim($inputToken);
         }
 
         return null;

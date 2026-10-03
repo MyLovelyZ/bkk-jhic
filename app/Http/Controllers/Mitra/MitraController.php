@@ -20,9 +20,14 @@ class MitraController extends Controller
      */
     protected function getAuthenticatedMitra(Request $request): Mitra
     {
-        return $request->attributes->get('mitra')
-            ?? Mitra::find($request->session()->get('mitra_id'))
-            ?? Mitra::where('is_verified', true)->firstOrFail();
+        $mitra = $request->attributes->get('mitra')
+            ?? ($request->session()->has('mitra_id') ? Mitra::find($request->session()->get('mitra_id')) : null);
+
+        if (!$mitra) {
+            abort(401, 'Autentikasi Mitra diperlukan.');
+        }
+
+        return $mitra;
     }
 
     /**

@@ -18,6 +18,11 @@ class Mitra extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'npwp',
+        'pic_name',
+        'pic_role',
+        'pic_email',
+        'pic_phone',
     ];
 
     protected $casts = [

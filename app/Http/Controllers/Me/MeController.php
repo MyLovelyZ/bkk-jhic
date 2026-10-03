@@ -647,8 +647,7 @@ class MeController extends Controller
     {
         $authUser = $request->auth_user ?? $request->input('auth_user') ?? [];
 
-        $roleParam = $request->query('role');
-        $role = $roleParam ? strtoupper($roleParam) : strtoupper($authUser['role'] ?? 'SISWA');
+        $role = strtoupper($authUser['role'] ?? 'SISWA');
         if (!in_array($role, ['SISWA', 'ALUMNI'])) {
             $role = 'SISWA';
         }

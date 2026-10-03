@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class MitraAuthController extends Controller
@@ -142,7 +143,8 @@ class MitraAuthController extends Controller
         ]);
 
         $file = $request->file('logo');
-        $fileName = 'mitra_' . $mitra->id . '_' . time() . '.' . $file->getClientOriginalExtension();
+        $extension = $file->guessExtension() ?: 'png';
+        $fileName = 'mitra_' . $mitra->id . '_' . Str::random(24) . '.' . $extension;
         $targetDir = public_path('uploads/mitra_logos');
 
         if (!file_exists($targetDir)) {

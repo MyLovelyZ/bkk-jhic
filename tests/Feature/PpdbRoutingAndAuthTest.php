@@ -176,7 +176,7 @@ class PpdbRoutingAndAuthTest extends TestCase
     }
 
     /**
-     * Test token extraction from cookie and body.
+     * Test token extraction from cookie and rejection of query parameters.
      */
     public function test_dashboard_accessible_via_cookie_and_body(): void
     {
@@ -194,14 +194,18 @@ class PpdbRoutingAndAuthTest extends TestCase
             ], 200),
         ]);
 
-        // Via Cookie
+        // Via Cookie (Allowed)
         $resCookie = $this->withCredentials()
             ->withUnencryptedCookie('access_token', 'cookie_token')
             ->getJson('/bkk/admin');
         $resCookie->assertStatus(200);
 
-        // Via Request Query/Body
-        $resBody = $this->getJson('/bkk/admin?access_token=body_token');
-        $resBody->assertStatus(200);
+        // Reset cookies so query parameter request does not carry the cookie
+        $this->unencryptedCookies = [];
+        $this->defaultCookies = [];
+
+        // Via Request Query Parameter (Rejected for security: Finding 8)
+        $resQuery = $this->getJson('/bkk/admin?access_token=body_token');
+        $resQuery->assertStatus(401);
     }
 }
