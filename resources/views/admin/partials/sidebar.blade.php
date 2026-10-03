@@ -39,9 +39,6 @@
                class="group flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors {{ request()->routeIs('*berita.index*') ? 'bg-navy text-white shadow-sm' : 'text-navy hover:bg-navy/5' }}">
                 <i data-lucide="newspaper" class="w-4 h-4 shrink-0 {{ request()->routeIs('*berita.index*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                 <span class="truncate">Kelola Berita</span>
-                <span class="ml-auto text-[10px] font-bold rounded-full px-2 py-0.5 {{ request()->routeIs('*berita.index*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">
-                    Live
-                </span>
             </a>
 
             <a href="{{ route('bkk.admin.berita.create') }}"
@@ -64,7 +61,6 @@
                     <i data-lucide="graduation-cap" class="w-4 h-4 shrink-0 {{ request()->routeIs('*tracer*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Tracer Study</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*tracer*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
             </a>
 
             <a href="{{ route('bkk.admin.mitra.index') }}"
@@ -73,7 +69,6 @@
                     <i data-lucide="building-2" class="w-4 h-4 shrink-0 {{ request()->routeIs('*admin.mitra*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Mitra IDUKA</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*admin.mitra*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
             </a>
 
             <a href="{{ route('bkk.admin.lowongan.index') }}"
@@ -82,7 +77,6 @@
                     <i data-lucide="briefcase" class="w-4 h-4 shrink-0 {{ request()->routeIs('*admin.lowongan*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Lowongan Kerja</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*admin.lowongan*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
             </a>
 
             <a href="{{ route('bkk.admin.pkl.monitoring') }}"
@@ -91,7 +85,6 @@
                     <i data-lucide="activity" class="w-4 h-4 shrink-0 {{ request()->routeIs('*admin.pkl*') ? 'text-white' : 'text-muted group-hover:text-navy' }}"></i>
                     <span class="truncate">Monitoring PKL</span>
                 </div>
-                <span class="text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0 {{ request()->routeIs('*admin.pkl*') ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800' }}">Live</span>
             </a>
         </nav>
 
@@ -102,33 +95,19 @@
                 <span class="h-px flex-1 bg-line"></span>
             </div>
 
-            <a href="{{ route('bkk.me.index') }}"
-               class="group flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors text-navy hover:bg-navy/5">
-                <i data-lucide="user-check" class="w-4 h-4 shrink-0 text-muted group-hover:text-navy"></i>
-                <span class="truncate">Portal Siswa/Alumni</span>
-            </a>
-
             <a href="{{ url('/bkk') }}" target="_blank"
                class="group flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors text-navy hover:bg-navy/5">
-                <i data-lucide="globe" class="w-4 h-4 shrink-0 text-muted group-hover:text-navy"></i>
+                <i data-lucide="external-link" class="w-4 h-4 shrink-0 text-muted group-hover:text-navy"></i>
                 <span class="truncate">Web Publik BKK</span>
+            </a>
+            <a href="/ppdb/dashboard" target="_blank"
+               class="group flex items-center gap-3.5 h-11 px-4 rounded-full text-sm font-medium transition-colors text-navy hover:bg-navy/5">
+                <i data-lucide="external-link" class="w-4 h-4 shrink-0 text-muted group-hover:text-navy"></i>
+                <span class="truncate">Dashboard PPDB</span>
             </a>
         </nav>
     </div>
 
-    <!-- Pinned Bottom Status Card -->
-    <div class="p-3 pt-0 shrink-0">
-        <div class="p-4 rounded-2xl bg-navy text-white relative overflow-hidden shadow-sm">
-            <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-maroon/60 blur-sm pointer-events-none"></div>
-            <div class="relative">
-                <div class="text-xs text-white/70 font-medium">Sesi Administrator</div>
-                <div class="text-sm font-semibold mt-0.5 leading-snug">SMK Plus Pelita Nusantara</div>
-                <div class="text-[11px] text-white/60 mt-2 font-mono">
-                    {{ $role }} · ID {{ $nip }}
-                </div>
-            </div>
-        </div>
-    </div>
 </aside>
 
 <script>

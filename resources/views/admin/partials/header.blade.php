@@ -42,12 +42,6 @@
             <span>Web Publik</span>
         </a>
 
-        <!-- Role Indicator Badge -->
-        <div class="h-8 px-3 rounded-full text-xs font-semibold flex items-center gap-1.5 shadow-sm bg-navy text-white">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span>[{{ $role }}]</span>
-        </div>
-
         <!-- Notifications Dropdown -->
         <div class="relative" id="adminNotifDropdownContainer">
             <button onclick="toggleAdminNotifDropdown()" class="relative w-10 h-10 rounded-full grid place-items-center hover:bg-navy/5 cursor-pointer text-muted transition-colors" aria-label="Notifikasi">
