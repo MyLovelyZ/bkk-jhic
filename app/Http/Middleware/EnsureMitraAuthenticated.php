@@ -15,9 +15,7 @@ class EnsureMitraAuthenticated
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $mitraId = $request->session()->get('mitra_id')
-            ?? $request->cookie('mitra_token')
-            ?? $request->header('X-Mitra-ID');
+        $mitraId = $request->session()->get('mitra_id');
 
         if (!$mitraId) {
             if ($request->wantsJson()) {
@@ -46,8 +44,7 @@ class EnsureMitraAuthenticated
 
             return redirect()
                 ->route('bkk.mitra.login')
-                ->with('error', 'Sesi login telah kedaluwarsa. Silakan masuk kembali.')
-                ->withCookie(cookie()->forget('mitra_token'));
+                ->with('error', 'Sesi login telah kedaluwarsa. Silakan masuk kembali.');
         }
 
         // Simpan instance Mitra pada request attribute & view data global

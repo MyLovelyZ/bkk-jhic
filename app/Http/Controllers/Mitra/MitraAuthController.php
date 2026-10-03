@@ -18,7 +18,7 @@ class MitraAuthController extends Controller
      */
     public function showLogin(Request $request): View|RedirectResponse
     {
-        $mitraId = $request->session()->get('mitra_id') ?? $request->cookie('mitra_token');
+        $mitraId = $request->session()->get('mitra_id');
         if ($mitraId && Mitra::where('id', $mitraId)->exists()) {
             return redirect()->route('bkk.mitra.dashboard');
         }
@@ -67,19 +67,16 @@ class MitraAuthController extends Controller
         }
 
         // Simpan sesi autentikasi mitra
+        $request->session()->regenerate();
         $request->session()->put('mitra_id', $mitra->id);
-
-        $lifetimeMinutes = $request->boolean('remember') ? 60 * 24 * 7 : 180; // 7 hari atau 3 jam
-        $cookie = cookie('mitra_token', (string) $mitra->id, $lifetimeMinutes, '/', null, false, true);
 
         return redirect()
             ->route('bkk.mitra.dashboard')
-            ->withCookie($cookie)
             ->with('success', "Selamat datang di Portal IDUKA, {$mitra->nama_perusahaan}!");
     }
 
     /**
-     * Handler Logout Mitra (Hapus Cookie & Sesi)
+     * Handler Logout Mitra (Hapus Sesi)
      */
     public function logout(Request $request): RedirectResponse
     {
@@ -87,11 +84,8 @@ class MitraAuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        $cookie = Cookie::forget('mitra_token');
-
         return redirect()
             ->route('bkk.mitra.login')
-            ->withCookie($cookie)
             ->with('success', 'Anda telah berhasil keluar dari akun Mitra IDUKA.');
     }
 

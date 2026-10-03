@@ -74,8 +74,7 @@ class MitraDashboardTest extends TestCase
         ]);
 
         $response->assertRedirect(route('bkk.mitra.dashboard'))
-            ->assertSessionHas('mitra_id', $this->mitra->id)
-            ->assertPlainCookie('mitra_token', (string) $this->mitra->id);
+            ->assertSessionHas('mitra_id', $this->mitra->id);
     }
 
     /**

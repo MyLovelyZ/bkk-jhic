@@ -94,7 +94,10 @@
 
                 <!-- Markdown Content Container Styled as Professional Resume -->
                 <div class="md-cv prose max-w-none text-navy">
-                    {!! \Illuminate\Support\Str::markdown($cvMarkdown) !!}
+                    {!! \Illuminate\Support\Str::markdown($cvMarkdown, [
+                        'html_input' => 'strip',
+                        'allow_unsafe_links' => false,
+                    ]) !!}
                 </div>
 
                 <!-- Skill Tags Box -->
